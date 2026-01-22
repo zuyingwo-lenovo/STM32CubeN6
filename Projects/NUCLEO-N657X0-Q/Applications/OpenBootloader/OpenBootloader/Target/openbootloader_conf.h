@@ -49,8 +49,8 @@ extern "C" {
 #define FLASH_LOADER_WRITE_ADDRESS        FLASH_LOADER_START_ADDRESS     /* Address used to write flash loader in RAM */
 
 #define EXT_MEMORY_START_ADDRESS          0x70000000U                                /* External memory Start Address */
-#define EXT_MEMORY_END_ADDRESS            0x78000000U                                  /* External memory end Address */
-#define EXT_MEMORY_SIZE                   0x08000000U                                         /* External memory Size */
+#define EXT_MEMORY_END_ADDRESS            0x74000000U                                  /* External memory end Address */
+#define EXT_MEMORY_SIZE                   0x04000000U                                         /* External memory Size */
 #define EXT_MEMORY_SECTOR_SIZE            0x10000U                                      /* Eternal memory sector size */
 
 #define OPENBL_DEFAULT_MEM                0xFFFFFFFFU                        /* Used for Erase and Write protect CMDs */
