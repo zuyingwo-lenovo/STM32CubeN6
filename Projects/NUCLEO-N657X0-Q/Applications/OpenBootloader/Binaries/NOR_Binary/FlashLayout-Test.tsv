@@ -1,0 +1,3 @@
+#Opt	Id	Name	Type	IP	Offset	Binary
+P	0x3	fsbl-extfl	Binary	none	0x0	MX25UM51245G_NUCLEO-OBL.bin
+P	0x4	fsbl-app	Binary	nor0	0x0010000	apps\zephyr-blinky.signed.bin

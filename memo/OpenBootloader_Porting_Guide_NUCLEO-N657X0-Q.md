@@ -38,7 +38,7 @@ The OpenBootloader (running in RAM) relies on a **separate External Loader binar
 2.  Switch configuration to **ExtMemLoader**.
 3.  Build to generate the raw binary (e.g., `MX25UM51245G_NUCLEO.bin`).
 
-## 4. Generating the Signed Binary (`-OBL.bin`)
+## 4. Generating the Signed External Loader Binary (`-OBL.bin`)
 To use the External Loader with the OpenBootloader protocol, it must be wrapped with a specific header.
 
 **Tool**: `STM32_SigningTool_CLI.exe` (part of STM32CubeProgrammer).
@@ -54,9 +54,25 @@ STM32_SigningTool_CLI.exe -bin MX25UM51245G_NUCLEO.bin -nk -of 0x38000000 -t fsb
 - `-t fsbl-extfl`: Binary type for External Flash Loader.
 - `-o`: Output filename.
 
-## 5. Usage
+
+## 5. Generating the Signed OpenBootloader Binary (`.stm32`)
+To boot the OpenBootloader via the BootROM (FSBL loading), you must sign the main application binary. The NUCLEO-N657X0-Q OpenBootloader is linked to run at `0x34180400`.
+
+**Input**: `STM32CubeIDE\Debug\OpenBootloader.bin` (from the OpenBootloader project build)
+**Tool**: `STM32_SigningTool_CLI.exe`
+
+**Command**:
+```bash
+STM32_SigningTool_CLI.exe -bin OpenBootloader.bin -nk -of 0x34180400 -t fsbl -o OpenBootloader_NUCLEO-N657X0-Q-trusted.stm32 -hv 2.3
+```
+
+**Parameters Explained**:
+- `-of 0x34180400`: Load address in AXI SRAM2 (Must match linker script `STM32N657X0HXQ_AXISRAM2_fsbl.ld`).
+- `-t fsbl`: Binary type for First Stage Boot Loader (Application).
+
+## 6. Usage
 1.  Connect STM32CubeProgrammer.
 2.  Boot the NUCLEO board.
-3.  Load `OpenBootloader` to RAM (`0x34180400`).
+3.  Load `OpenBootloader_NUCLEO-N657X0-Q-trusted.stm32` to RAM (via BootROM or manually to `0x34180400`).
 4.  Load the signed `MX25UM51245G_NUCLEO-OBL.bin` to RAM (`0x38000000`).
 5.  Execute operations (Read/Write/Erase).
