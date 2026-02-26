@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    ux_host_mouse.h
-  * @author  MCD Application Team
-  * @brief   USBX Host HID Mouse applicative header file
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2024 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    ux_host_mouse.h
+ * @author  MCD Application Team
+ * @brief   USBX Host HID Mouse applicative header file
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2024 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __UX_HOST_MOUSE_H__
@@ -68,4 +68,4 @@ VOID hid_mouse_thread_entry(ULONG thread_input);
 #ifdef __cplusplus
 }
 #endif
-#endif  /* __UX_HOST_MOUSE_H__ */
+#endif /* __UX_HOST_MOUSE_H__ */
