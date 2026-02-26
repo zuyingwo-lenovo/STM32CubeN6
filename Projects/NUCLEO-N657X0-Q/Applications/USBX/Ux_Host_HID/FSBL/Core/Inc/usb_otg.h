@@ -34,6 +34,8 @@ extern "C" {
 
 extern HCD_HandleTypeDef hhcd_USB_OTG_HS1;
 
+extern HCD_HandleTypeDef hhcd_USB_OTG_HS2;
+
 /* USER CODE BEGIN Private defines */
 #define RESET_USB_MACRO() do { \
     LL_AHB5_GRP1_ForceReset(0x00800000); \
@@ -45,6 +47,7 @@ extern HCD_HandleTypeDef hhcd_USB_OTG_HS1;
 /* USER CODE END Private defines */
 
 void MX_USB1_OTG_HS_HCD_Init(void);
+void MX_USB2_OTG_HS_HCD_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 

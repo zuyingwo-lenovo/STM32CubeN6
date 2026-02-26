@@ -60,6 +60,7 @@ void TCPP0203_PORT0_FLG_EXTI_IRQHANDLER(void);
 
 /* External variables --------------------------------------------------------*/
 extern HCD_HandleTypeDef hhcd_USB_OTG_HS1;
+extern HCD_HandleTypeDef hhcd_USB_OTG_HS2;
 extern TIM_HandleTypeDef htim6;
 
 /* USER CODE BEGIN EV */
@@ -246,6 +247,20 @@ void USB1_OTG_HS_IRQHandler(void)
   /* USER CODE BEGIN USB1_OTG_HS_IRQn 1 */
 
   /* USER CODE END USB1_OTG_HS_IRQn 1 */
+}
+
+/**
+  * @brief This function handles USB2 OTG HS interrupt.
+  */
+void USB2_OTG_HS_IRQHandler(void)
+{
+  /* USER CODE BEGIN USB2_OTG_HS_IRQn 0 */
+
+  /* USER CODE END USB2_OTG_HS_IRQn 0 */
+  HAL_HCD_IRQHandler(&hhcd_USB_OTG_HS2);
+  /* USER CODE BEGIN USB2_OTG_HS_IRQn 1 */
+
+  /* USER CODE END USB2_OTG_HS_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

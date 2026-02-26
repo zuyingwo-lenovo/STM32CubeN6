@@ -22,8 +22,8 @@
 #include "gpdma.h"
 #include "ucpd.h"
 #include "usart.h"
+#include "usb_otg.h"
 #include "gpio.h"
-#include "usbpd.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -122,9 +122,8 @@ int main(void)
   MX_GPDMA1_Init();
   MX_UCPD1_Init();
   MX_USART1_UART_Init();
+  MX_USB2_OTG_HS_HCD_Init();
   SystemIsolation_Config();
-  /* Call PreOsInit function */
-  USBPD_PreInitOs();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */

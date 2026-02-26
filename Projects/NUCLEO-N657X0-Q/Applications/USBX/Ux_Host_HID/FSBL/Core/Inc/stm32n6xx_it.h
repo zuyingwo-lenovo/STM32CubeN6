@@ -58,6 +58,7 @@ void GPDMA1_Channel3_IRQHandler(void);
 void TIM6_IRQHandler(void);
 void UCPD1_IRQHandler(void);
 void USB1_OTG_HS_IRQHandler(void);
+void USB2_OTG_HS_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */
