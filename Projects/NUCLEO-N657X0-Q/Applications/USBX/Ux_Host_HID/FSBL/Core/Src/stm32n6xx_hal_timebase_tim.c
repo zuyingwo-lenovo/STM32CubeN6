@@ -43,6 +43,7 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   RCC_ClkInitTypeDef    clkconfig;
   uint32_t              uwTimclock;
   uint32_t              uwPrescalerValue;
+
   /*Configure the TIM6 IRQ priority */
   HAL_NVIC_SetPriority(TIM6_IRQn, TickPriority ,0);
   /* Enable the TIM6 global Interrupt */
