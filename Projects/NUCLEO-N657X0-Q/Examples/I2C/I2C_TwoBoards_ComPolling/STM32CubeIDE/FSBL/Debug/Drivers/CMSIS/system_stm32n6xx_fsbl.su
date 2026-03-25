@@ -1,0 +1,3 @@
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/system_stm32n6xx_fsbl.c:175:6:SystemInit	4	static
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/system_stm32n6xx_fsbl.c:302:6:SystemCoreClockUpdate	56	static
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/system_stm32n6xx_fsbl.c:455:24:SECURE_SystemCoreClockUpdate	16	static

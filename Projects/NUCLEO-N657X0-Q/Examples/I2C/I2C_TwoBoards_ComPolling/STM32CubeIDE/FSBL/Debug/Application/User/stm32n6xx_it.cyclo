@@ -1,0 +1,10 @@
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/stm32n6xx_it.c:72:6:NMI_Handler	1
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/stm32n6xx_it.c:87:6:HardFault_Handler	1
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/stm32n6xx_it.c:102:6:MemManage_Handler	1
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/stm32n6xx_it.c:117:6:BusFault_Handler	1
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/stm32n6xx_it.c:132:6:UsageFault_Handler	1
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/stm32n6xx_it.c:147:6:SecureFault_Handler	1
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/stm32n6xx_it.c:162:6:SVC_Handler	1
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/stm32n6xx_it.c:175:6:DebugMon_Handler	1
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/stm32n6xx_it.c:188:6:PendSV_Handler	1
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/stm32n6xx_it.c:201:6:SysTick_Handler	1

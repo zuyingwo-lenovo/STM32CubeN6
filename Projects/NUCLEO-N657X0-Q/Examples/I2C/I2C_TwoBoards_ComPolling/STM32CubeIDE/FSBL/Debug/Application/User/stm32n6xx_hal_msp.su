@@ -1,0 +1,6 @@
+C:/Users/ANDY-TP-001/STM32Cube/Repository/STM32Cube_FW_N6_V1.3.0/Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_ll_bus.h:1407:22:LL_AHB4_GRP1_EnableClock	24	static
+C:/Users/ANDY-TP-001/STM32Cube/Repository/STM32Cube_FW_N6_V1.3.0/Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_ll_bus.h:2273:22:LL_APB1_GRP1_EnableClock	24	static
+C:/Users/ANDY-TP-001/STM32Cube/Repository/STM32Cube_FW_N6_V1.3.0/Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_ll_bus.h:2403:22:LL_APB1_GRP1_DisableClock	16	static
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/stm32n6xx_hal_msp.c:63:6:HAL_MspInit	4	static
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/stm32n6xx_hal_msp.c:83:6:HAL_I2C_MspInit	440	static
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/stm32n6xx_hal_msp.c:130:6:HAL_I2C_MspDeInit	16	static
