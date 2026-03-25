@@ -71,13 +71,43 @@ typedef funcptr funcptr_NS;
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+HAL_StatusTypeDef PAF9615_CheckPartID(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define I2C_ADDRESS 0x34F
+#define I2C_ADDRESS 0x30F
+/* PAF9615C2 Sensor Address (7-bit 0x34 shifted for HAL) */
+#define SENSOR_ADDRESS_1 (0x34 << 8)
+#define SENSOR_ADDRESS_2 (0x57 << 8)
+
+/* PAF9615C2 Bank0 Registers */
+#define REG_PART_ID_L 0x00
+#define REG_PART_ID_H 0x01
+#define REG_STATUS 0x05
+#define REG_CMD_BANK_SEL 0x7F
+#define REG_SW_RESET 0x7D
+
+/* Expected Values */
+#define VAL_PART_ID 0x0271
+#define VAL_BANK0 0x00
+#define VAL_COLD_RESET 0x5A
+
+/* Status Bits */
+#define STATUS_OTP_LOAD_DONE (1 << 6)
 
 /* USER CODE BEGIN Private defines */
+#define THRMPL1_PD_Pin GPIO_PIN_9
+#define THRMPL1_PD_GPIO_Port GPIOG
+
+#define THRMPL1_ALERT_Pin GPIO_PIN_13
+#define THRMPL1_ALERT_GPIO_Port GPIOG
+
+
+#define THRMPL2_PD_Pin GPIO_PIN_12
+#define THRMPL2_PD_GPIO_Port GPIOG
+
+#define THRMPL2_ALERT_Pin GPIO_PIN_14
+#define THRMPL2_ALERT_GPIO_Port GPIOG
 
 /* Size of Transmission buffer */
 #define TXBUFFERSIZE                      (COUNTOF(aTxBuffer) - 1)

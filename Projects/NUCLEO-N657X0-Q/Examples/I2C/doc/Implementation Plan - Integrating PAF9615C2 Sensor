@@ -1,0 +1,34 @@
+# Implementation Plan - Integrating PAF9615C2 Sensor
+
+This plan outlines the changes required to modify the `I2C_TwoBoards_ComPolling` project to communicate with a PixArt PAF9615C2 IR Thermopile Sensor instead of another STM32 board.
+
+## User Review Required
+
+> [!IMPORTANT]
+> The sensor's I2C address defaults to `0x34` (7-bit). The current project uses `0x34F` (10-bit). We must switch to 7-bit addressing.
+> Hardware connection: Ensure the sensor is connected to I2C1 (PE5/PE6) and powered correctly (2.2V to 3.6V).
+
+## Proposed Changes
+
+### Configuration
+- **[MODIFY] [main.h](file:///d:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Inc/main.h)**:
+    - Update `I2C_ADDRESS` to `0x34` (7-bit address shifted: `0x34 << 1` if using HAL_I2C_Transmit).
+    - Add sensor-specific register definitions.
+
+- **[MODIFY] [main.c](file:///d:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/main.c)**:
+    - Change I2C addressing mode to 7-bit in [MX_I2C1_Init()](file:///d:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/main.c#351-405).
+    - Implement sensor initialization sequence (Wait 120ms, check ID, cold reset, wait 120ms, check OTP load).
+    - Replace board-to-board polling logic with sensor data acquisition polling (read registers 0x0A-0x0D).
+    - Perform 2's complement conversion and scale calculation (0.03125°C/LSB).
+
+### Logic Implementation
+- Create a dedicated source/header for the sensor driver (optional, but cleaner) or integrate into [main.c](file:///d:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_ComPolling/FSBL/Src/main.c).
+- Use `HAL_I2C_Mem_Read` for register access.
+
+## Verification Plan
+
+### Manual Verification
+- Verify `PartID` matches `0x0271`.
+- Verify `Status` register `OTP_Load_Done` bit is set.
+- Check if temperature data changes when a heat source is placed in front of the sensor.
+- Use LED status for high-level success/error indication as in the original example.
