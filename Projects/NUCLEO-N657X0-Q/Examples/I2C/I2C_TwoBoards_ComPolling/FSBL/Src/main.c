@@ -65,6 +65,7 @@ static void MX_I2C1_Init(void);
 static uint16_t Buffercmp(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t BufferLength);
 
 
+#define MASTER_BOARD
 
 /* USER CODE END PFP */
 
@@ -100,7 +101,7 @@ int main(void)
   SCB_EnableICache();
 
   /* Enable D-Cache---------------------------------------------------------*/
-  SCB_EnableDCache();
+//  SCB_EnableDCache();
 
   /* MCU Configuration--------------------------------------------------------*/
   HAL_Init();
