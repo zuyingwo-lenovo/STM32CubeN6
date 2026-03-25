@@ -1,0 +1,12 @@
+../../../../../../../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_ll_bus.h:1407:22:LL_AHB4_GRP1_EnableClock	1
+../../../../../../../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_ll_bus.h:2273:22:LL_APB1_GRP1_EnableClock	1
+../../../../../../../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_ll_bus.h:2403:22:LL_APB1_GRP1_DisableClock	1
+../../../../../../../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_ll_bus.h:2909:22:LL_APB2_GRP1_EnableClock	1
+../../../../../../../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_ll_bus.h:2997:22:LL_APB2_GRP1_DisableClock	1
+../../../../../../../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_ll_bus.h:3251:22:LL_APB4_GRP1_EnableClock	1
+../../../../../../../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_ll_bus.h:3319:22:LL_APB4_GRP1_DisableClock	1
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_MultiMasterIT_Master/FSBL/Src/stm32n6xx_hal_msp.c:64:6:HAL_MspInit	1
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_MultiMasterIT_Master/FSBL/Src/stm32n6xx_hal_msp.c:84:6:HAL_I2C_MspInit	5
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_MultiMasterIT_Master/FSBL/Src/stm32n6xx_hal_msp.c:173:6:HAL_I2C_MspDeInit	3
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_MultiMasterIT_Master/FSBL/Src/stm32n6xx_hal_msp.c:230:6:HAL_TIM_Base_MspInit	2
+D:/dev/AI/Samples/stm/STM32CubeN6/Projects/NUCLEO-N657X0-Q/Examples/I2C/I2C_TwoBoards_MultiMasterIT_Master/FSBL/Src/stm32n6xx_hal_msp.c:262:6:HAL_TIM_Base_MspDeInit	2
