@@ -359,7 +359,7 @@ static void MX_I2C1_Init(void)
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
   hi2c1.Init.OwnAddress1 = 0;
-  hi2c1.Init.Timing = 0x405018A8;
+  hi2c1.Init.Timing = 0x20802477;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
   hi2c1.Init.OwnAddress2 = 0;
@@ -467,9 +467,13 @@ HAL_StatusTypeDef PAF9615_CheckPartID(void) {
   uint32_t tickstart;
   uint16_t active_address = 0;
 
+  status = HAL_GPIO_ReadPin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin);
+
   /* Step 1 & 2: Power On / Enable sensor and wait 120ms */
-  HAL_GPIO_WritePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin, GPIO_PIN_RESET);
-  HAL_Delay(120);
+  if (status == 1) {
+	  HAL_GPIO_WritePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin, GPIO_PIN_RESET);
+	  HAL_Delay(120);
+  }
 
   /* Step 3 & 4: Read and Verify Part ID - Try both possible addresses */
   uint16_t addrs[] = {SENSOR_ADDRESS_1, SENSOR_ADDRESS_2};
@@ -479,15 +483,17 @@ HAL_StatusTypeDef PAF9615_CheckPartID(void) {
     while ((HAL_GetTick() - tickstart) < 500) { /* Try each address for 500ms */
       /* Switch to Bank 0 */
       data[0] = VAL_BANK0;
-      if (HAL_I2C_Mem_Write(&hi2c1, addrs[i], REG_CMD_BANK_SEL, I2C_MEMADD_SIZE_8BIT, data, 1, 100) == HAL_OK) {
+      if (HAL_I2C_Mem_Write(&hi2c1, addrs[i], REG_CMD_BANK_SEL, I2C_MEMADD_SIZE_8BIT, data, 1, 10000) == HAL_OK) {
         /* Read Part ID */
-        if (HAL_I2C_Mem_Read(&hi2c1, addrs[i], REG_PART_ID_L, I2C_MEMADD_SIZE_8BIT, data, 2, 100) == HAL_OK) {
+        if (HAL_I2C_Mem_Read(&hi2c1, addrs[i], REG_PART_ID_L, I2C_MEMADD_SIZE_8BIT, data, 2, 10000) == HAL_OK) {
           part_id = (uint16_t)(data[1] << 8) | data[0];
           if (part_id == VAL_PART_ID) {
             active_address = addrs[i];
             break; /* Found sensor */
           }
         }
+      }else{
+
       }
       HAL_Delay(50);
     }
@@ -500,7 +506,7 @@ HAL_StatusTypeDef PAF9615_CheckPartID(void) {
 
   /* Step 7: Cold Reset */
   data[0] = VAL_COLD_RESET;
-  if (HAL_I2C_Mem_Write(&hi2c1, active_address, REG_SW_RESET, I2C_MEMADD_SIZE_8BIT, data, 1, 1000) != HAL_OK) {
+  if (HAL_I2C_Mem_Write(&hi2c1, active_address, REG_SW_RESET, I2C_MEMADD_SIZE_8BIT, data, 1, 10000) != HAL_OK) {
     return HAL_ERROR;
   }
 
@@ -510,7 +516,7 @@ HAL_StatusTypeDef PAF9615_CheckPartID(void) {
   /* Step 9 & 10: Check OTP Load Done Flag */
   tickstart = HAL_GetTick();
   while (1) {
-    if (HAL_I2C_Mem_Read(&hi2c1, active_address, REG_STATUS, I2C_MEMADD_SIZE_8BIT, &status, 1, 1000) == HAL_OK) {
+    if (HAL_I2C_Mem_Read(&hi2c1, active_address, REG_STATUS, I2C_MEMADD_SIZE_8BIT, &status, 1, 10000) == HAL_OK) {
       if (status & STATUS_OTP_LOAD_DONE) {
         break; /* Initialization Successful */
       }

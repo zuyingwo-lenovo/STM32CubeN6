@@ -77,8 +77,8 @@ HAL_StatusTypeDef PAF9615_CheckPartID(void);
 /* Private defines -----------------------------------------------------------*/
 #define I2C_ADDRESS 0x30F
 /* PAF9615C2 Sensor Address (7-bit 0x34 shifted for HAL) */
-#define SENSOR_ADDRESS_1 (0x34 << 8)
-#define SENSOR_ADDRESS_2 (0x57 << 8)
+#define SENSOR_ADDRESS_1 (0x34 << 1)
+#define SENSOR_ADDRESS_2 (0x57 << 1)
 
 /* PAF9615C2 Bank0 Registers */
 #define REG_PART_ID_L 0x00
