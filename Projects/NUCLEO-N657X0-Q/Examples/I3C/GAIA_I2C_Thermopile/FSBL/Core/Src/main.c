@@ -280,12 +280,12 @@ static void MX_I3C1_Init(void)
   hi3c1.Mode = HAL_I3C_MODE_CONTROLLER;
   hi3c1.Init.CtrlBusCharacteristic.SDAHoldTime = HAL_I3C_SDA_HOLD_TIME_0_5;
   hi3c1.Init.CtrlBusCharacteristic.WaitTime = HAL_I3C_OWN_ACTIVITY_STATE_0;
-  hi3c1.Init.CtrlBusCharacteristic.SCLPPLowDuration = 0x97;
-  hi3c1.Init.CtrlBusCharacteristic.SCLI3CHighDuration = 0x07;
-  hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x8b;
-  hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x3b;
-  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x68;
-  hi3c1.Init.CtrlBusCharacteristic.BusIdleDuration = 0xc6;
+  hi3c1.Init.CtrlBusCharacteristic.SCLPPLowDuration = 0x09;
+  hi3c1.Init.CtrlBusCharacteristic.SCLI3CHighDuration = 0x02;
+  hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x6f;
+  hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x2f;
+  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x42;
+  hi3c1.Init.CtrlBusCharacteristic.BusIdleDuration = 0x3e;
   if (HAL_I3C_Init(&hi3c1) != HAL_OK)
   {
     Error_Handler();
