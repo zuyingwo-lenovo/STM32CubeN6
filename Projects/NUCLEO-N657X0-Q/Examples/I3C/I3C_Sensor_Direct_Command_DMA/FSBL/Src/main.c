@@ -172,9 +172,9 @@ int main(void)
 
   /* Enable I-Cache---------------------------------------------------------*/
   SCB_EnableICache();
-
-  /* Enable D-Cache---------------------------------------------------------*/
-  SCB_EnableDCache();
+//
+//  /* Enable D-Cache---------------------------------------------------------*/
+//  SCB_EnableDCache();
 
   /* MCU Configuration--------------------------------------------------------*/
   HAL_Init();
@@ -397,7 +397,7 @@ void SystemClock_Config(void)
 
   /** Configure the System Power Supply
   */
-  if (HAL_PWREx_ConfigSupply(PWR_EXTERNAL_SOURCE_SUPPLY) != HAL_OK)
+  if (HAL_PWREx_ConfigSupply(PWR_SMPS_SUPPLY) != HAL_OK)
   {
     Error_Handler();
   }
@@ -541,11 +541,11 @@ static void MX_I3C1_Init(void)
   hi3c1.Mode = HAL_I3C_MODE_CONTROLLER;
   hi3c1.Init.CtrlBusCharacteristic.SDAHoldTime = HAL_I3C_SDA_HOLD_TIME_0_5;
   hi3c1.Init.CtrlBusCharacteristic.WaitTime = HAL_I3C_OWN_ACTIVITY_STATE_0;
-  hi3c1.Init.CtrlBusCharacteristic.SCLPPLowDuration = 0x13;
-  hi3c1.Init.CtrlBusCharacteristic.SCLI3CHighDuration = 0x13;
-  hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x47;
-  hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x00;
-  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x27;
+  hi3c1.Init.CtrlBusCharacteristic.SCLPPLowDuration = 0x1f;
+  hi3c1.Init.CtrlBusCharacteristic.SCLI3CHighDuration = 0x07;
+  hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0xb3;
+  hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x13;
+  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x7c;
   hi3c1.Init.CtrlBusCharacteristic.BusIdleDuration = 0xc6;
   if (HAL_I3C_Init(&hi3c1) != HAL_OK)
   {
@@ -776,7 +776,6 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
-
 #ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
