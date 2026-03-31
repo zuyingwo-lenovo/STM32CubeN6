@@ -21,6 +21,39 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#define I2C_ADDRESS (0x18 << 1)
+/* PAF9615C2 Sensor Address (7-bit 0x34 shifted for HAL) */
+#define SENSOR_ADDRESS_1 (0x34 << 1)
+#define SENSOR_ADDRESS_2 (0x57 << 1)
+
+/* PAF9615C2 Bank0 Registers */
+#define REG_PART_ID_L 0x00
+#define REG_PART_ID_H 0x01
+#define REG_STATUS 0x05
+#define REG_CMD_BANK_SEL 0x7F
+#define REG_SW_RESET 0x7D
+
+/* Expected Values */
+#define VAL_PART_ID 0x0271
+#define VAL_BANK0 0x00
+#define VAL_COLD_RESET 0x5A
+
+/* Status Bits */
+#define STATUS_OTP_LOAD_DONE (1 << 6)
+
+/* USER CODE BEGIN Private defines */
+#define THRMPL1_PD_Pin GPIO_PIN_9
+#define THRMPL1_PD_GPIO_Port GPIOG
+
+#define THRMPL1_ALERT_Pin GPIO_PIN_13
+#define THRMPL1_ALERT_GPIO_Port GPIOG
+
+
+#define THRMPL2_PD_Pin GPIO_PIN_12
+#define THRMPL2_PD_GPIO_Port GPIOG
+
+#define THRMPL2_ALERT_Pin GPIO_PIN_14
+#define THRMPL2_ALERT_GPIO_Port GPIOG
 
 /* USER CODE END Includes */
 
@@ -46,7 +79,17 @@ I2C_HandleTypeDef hi2c1;
 I3C_HandleTypeDef hi3c1;
 
 /* USER CODE BEGIN PV */
+/* Buffer used for transmission */
 
+uint8_t aTxBuffer[] = " ****I2C_TwoBoards communication based on Polling****  "
+                      "****I2C_TwoBoards communication based on Polling****  "
+                      "****I2C_TwoBoards communication based on Polling**** ";
+#define COUNTOF(__BUFFER__)   (sizeof(__BUFFER__) / sizeof(*(__BUFFER__)))
+
+#define TXBUFFERSIZE                      (COUNTOF(aTxBuffer) - 1)
+#define RXBUFFERSIZE                      TXBUFFERSIZE
+/* Buffer used for reception */
+uint8_t aRxBuffer[RXBUFFERSIZE];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,9 +144,20 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+	  while (HAL_I2C_Master_Transmit(&hi2c1, (uint16_t)I2C_ADDRESS,
+	                                 (uint8_t *)aTxBuffer, 2,
+	                                 10000) != HAL_OK) {
+	    /* Error_Handler() function is called when Timeout error occurs.
+	       When Acknowledge failure occurs (Slave don't acknowledge its address)
+	       Master restarts communication */
+	    if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF) {
+	      Error_Handler();
+	    }
+	  }
 
     /* USER CODE BEGIN 3 */
   }
+  return 0;
   /* USER CODE END 3 */
 }
 /* USER CODE BEGIN CLK 1 */
@@ -226,7 +280,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x10C035B4;
+  hi2c1.Init.Timing = 0x2020121D;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
