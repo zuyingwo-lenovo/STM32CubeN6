@@ -233,7 +233,9 @@ void HAL_I3C_MspInit(I3C_HandleTypeDef* hi3c)
   /** Initializes the peripherals clock
   */
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I3C1;
-    PeriphClkInitStruct.I3c1ClockSelection = RCC_I3C1CLKSOURCE_HSI;
+    PeriphClkInitStruct.I3c1ClockSelection = RCC_I3C1CLKSOURCE_IC10;
+    PeriphClkInitStruct.ICSelection[RCC_IC10].ClockSelection = RCC_ICCLKSOURCE_PLL2;
+    PeriphClkInitStruct.ICSelection[RCC_IC10].ClockDivider = 200;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
     {
       Error_Handler();

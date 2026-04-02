@@ -245,7 +245,13 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL1.PLLFractional = 0;
   RCC_OscInitStruct.PLL1.PLLP1 = 1;
   RCC_OscInitStruct.PLL1.PLLP2 = 1;
-  RCC_OscInitStruct.PLL2.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL2.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL2.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL2.PLLM = 1;
+  RCC_OscInitStruct.PLL2.PLLN = 25;
+  RCC_OscInitStruct.PLL2.PLLFractional = 0;
+  RCC_OscInitStruct.PLL2.PLLP1 = 1;
+  RCC_OscInitStruct.PLL2.PLLP2 = 1;
   RCC_OscInitStruct.PLL3.PLLState = RCC_PLL_NONE;
   RCC_OscInitStruct.PLL4.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -406,12 +412,12 @@ static void MX_I3C1_Init(void)
   hi3c1.Mode = HAL_I3C_MODE_CONTROLLER;
   hi3c1.Init.CtrlBusCharacteristic.SDAHoldTime = HAL_I3C_SDA_HOLD_TIME_0_5;
   hi3c1.Init.CtrlBusCharacteristic.WaitTime = HAL_I3C_OWN_ACTIVITY_STATE_0;
-  hi3c1.Init.CtrlBusCharacteristic.SCLPPLowDuration = 0x02;
-  hi3c1.Init.CtrlBusCharacteristic.SCLI3CHighDuration = 0x02;
-  hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x94;
-  hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x3f;
-  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x51;
-  hi3c1.Init.CtrlBusCharacteristic.BusIdleDuration = 0x3e;
+  hi3c1.Init.CtrlBusCharacteristic.SCLPPLowDuration = 0x00;
+  hi3c1.Init.CtrlBusCharacteristic.SCLI3CHighDuration = 0x00;
+  hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x0d;
+  hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x05;
+  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x08;
+  hi3c1.Init.CtrlBusCharacteristic.BusIdleDuration = 0x06;
   if (HAL_I3C_Init(&hi3c1) != HAL_OK)
   {
     Error_Handler();
