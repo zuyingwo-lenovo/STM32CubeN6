@@ -24,8 +24,10 @@
 #define I2C_ADDRESS_ACC1 (0x18 << 1)
 #define I2C_ADDRESS_TOF  (0x29 << 1)
 /* PAF9615C2 Sensor Address (7-bit 0x34 shifted for HAL) */
-#define SENSOR_ADDRESS_1 (0x34 << 1)
-#define SENSOR_ADDRESS_2 (0x57 << 1)
+//#define SENSOR_ADDRESS_1 (0x34 << 1)
+//#define SENSOR_ADDRESS_2 (0x57 << 1)
+#define SENSOR_ADDRESS_1 (0x34 << 0)
+#define SENSOR_ADDRESS_2 (0x57 << 0)
 
 /* PAF9615C2 Bank0 Registers */
 #define REG_PART_ID_L 0x00
@@ -80,9 +82,6 @@ I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c3;
 
 I3C_HandleTypeDef hi3c1;
-DMA_HandleTypeDef handle_GPDMA1_Channel2;
-DMA_HandleTypeDef handle_GPDMA1_Channel1;
-DMA_HandleTypeDef handle_GPDMA1_Channel0;
 
 /* USER CODE BEGIN PV */
 /* Buffer used for transmission */
@@ -96,34 +95,11 @@ uint8_t aTxBuffer[] = {0x7F};
 /* Buffer used for reception */
 uint8_t aRxBuffer[RXBUFFERSIZE];
 
-
-/* Context buffer related to Frame context, contain different buffer value for a communication */
-I3C_XferTypeDef aI3C1_ContextBuffers[2] __attribute__((section("noncacheable_buffer")));
-
-/* Buffer used for transmission */
-uint8_t aI3C1_TxBuffer[] = " ****I2C_TwoBoards communication based on IT****  ****I2C_TwoBoards communication based on IT****  ****I2C_TwoBoards communication based on IT**** ";
-
-/* Buffer used for reception */
-uint8_t aI3C1_RxBuffer[RXBUFFERSIZE] __attribute__((section("noncacheable_buffer")));
-
-/* Buffer used by HAL to compute control data for the Private Communication */
-uint32_t aI3C1_ControlBuffer[0xF] __attribute__((section("noncacheable_buffer")));
-
-#define I3C1_TXBUFFERSIZE                      (COUNTOF(aI3C1_TxBuffer) - 1)
-#define I3C1_RXBUFFERSIZE                      I3C1_TXBUFFERSIZE
-/* Descriptor for private data transmit */
-I3C_PrivateTypeDef aPrivateDescriptor[2] = \
-{
-	{SENSOR_ADDRESS_1, {aI3C1_TxBuffer, I3C1_TXBUFFERSIZE}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
-	{SENSOR_ADDRESS_1, {NULL, 0}, {aI3C1_RxBuffer, I3C1_RXBUFFERSIZE}, HAL_I3C_DIRECTION_READ}
-};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void SystemIsolation_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_GPDMA1_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_I2C3_Init(void);
 static void MX_I3C1_Init(void);
@@ -171,11 +147,9 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_GPDMA1_Init();
   MX_I2C1_Init();
   MX_I2C3_Init();
   MX_I3C1_Init();
-  SystemIsolation_Config();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -308,38 +282,6 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief GPDMA1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_GPDMA1_Init(void)
-{
-
-  /* USER CODE BEGIN GPDMA1_Init 0 */
-
-  /* USER CODE END GPDMA1_Init 0 */
-
-  /* Peripheral clock enable */
-  __HAL_RCC_GPDMA1_CLK_ENABLE();
-
-  /* GPDMA1 interrupt Init */
-    HAL_NVIC_SetPriority(GPDMA1_Channel0_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(GPDMA1_Channel0_IRQn);
-    HAL_NVIC_SetPriority(GPDMA1_Channel1_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(GPDMA1_Channel1_IRQn);
-    HAL_NVIC_SetPriority(GPDMA1_Channel2_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(GPDMA1_Channel2_IRQn);
-
-  /* USER CODE BEGIN GPDMA1_Init 1 */
-
-  /* USER CODE END GPDMA1_Init 1 */
-  /* USER CODE BEGIN GPDMA1_Init 2 */
-
-  /* USER CODE END GPDMA1_Init 2 */
-
-}
-
-/**
   * @brief I2C1 Initialization Function
   * @param None
   * @retval None
@@ -464,11 +406,11 @@ static void MX_I3C1_Init(void)
   hi3c1.Mode = HAL_I3C_MODE_CONTROLLER;
   hi3c1.Init.CtrlBusCharacteristic.SDAHoldTime = HAL_I3C_SDA_HOLD_TIME_1_5;
   hi3c1.Init.CtrlBusCharacteristic.WaitTime = HAL_I3C_OWN_ACTIVITY_STATE_0;
-  hi3c1.Init.CtrlBusCharacteristic.SCLPPLowDuration = 0x2f;
+  hi3c1.Init.CtrlBusCharacteristic.SCLPPLowDuration = 0x3c;
   hi3c1.Init.CtrlBusCharacteristic.SCLI3CHighDuration = 0x02;
   hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x52;
   hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x4c;
-  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x0c;
+  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x2a;
   hi3c1.Init.CtrlBusCharacteristic.BusIdleDuration = 0x3e;
   if (HAL_I3C_Init(&hi3c1) != HAL_OK)
   {
@@ -572,49 +514,6 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(THRMPL2_ALERT_GPIO_Port, &THRMPL2_ALERT_GPIO_InitStruct);
 
   /* USER CODE END MX_GPIO_Init_2 */
-}
-
-/**
-  * @brief RIF Initialization Function
-  * @param None
-  * @retval None
-  */
-  static void SystemIsolation_Config(void)
-{
-
-/* USER CODE BEGIN RIF_Init 0 */
-
-/* USER CODE END RIF_Init 0 */
-
-  /* set all required IPs as secure privileged */
-  __HAL_RCC_RIFSC_CLK_ENABLE();
-
-  /* RIF-Aware IPs Config */
-
-  /* set up GPDMA configuration */
-  /* set GPDMA1 channel 0 used by I3C1 */
-  if (HAL_DMA_ConfigChannelAttributes(&handle_GPDMA1_Channel0,DMA_CHANNEL_SEC|DMA_CHANNEL_PRIV|DMA_CHANNEL_SRC_SEC|DMA_CHANNEL_DEST_SEC)!= HAL_OK )
-  {
-    Error_Handler();
-  }
-  /* set GPDMA1 channel 1 used by I3C1 */
-  if (HAL_DMA_ConfigChannelAttributes(&handle_GPDMA1_Channel1,DMA_CHANNEL_SEC|DMA_CHANNEL_PRIV|DMA_CHANNEL_SRC_SEC|DMA_CHANNEL_DEST_SEC)!= HAL_OK )
-  {
-    Error_Handler();
-  }
-  /* set GPDMA1 channel 2 used by I3C1 */
-  if (HAL_DMA_ConfigChannelAttributes(&handle_GPDMA1_Channel2,DMA_CHANNEL_SEC|DMA_CHANNEL_PRIV|DMA_CHANNEL_SRC_SEC|DMA_CHANNEL_DEST_SEC)!= HAL_OK )
-  {
-    Error_Handler();
-  }
-
-/* USER CODE BEGIN RIF_Init 1 */
-
-/* USER CODE END RIF_Init 1 */
-/* USER CODE BEGIN RIF_Init 2 */
-
-/* USER CODE END RIF_Init 2 */
-
 }
 
 /* USER CODE BEGIN 4 */
@@ -722,8 +621,33 @@ void TestI2C1()
 	return;
 }
 
+
+/* Context buffer related to Frame context, contain different buffer value for a communication */
+I3C_XferTypeDef aI3C1_ContextBuffers[2] __attribute__((section("noncacheable_buffer")));
+/* Buffer used by HAL to compute control data for the Private Communication */
+uint32_t aI3C1_ControlBuffer[0xF] __attribute__((section("noncacheable_buffer")));
+
+/* Buffer used for transmission */
+uint8_t aI3C1_TxBuffer[] = {0x7f, 0x00};
+
+#define I3C1_TXBUFFERSIZE                      (COUNTOF(aI3C1_TxBuffer) - 1)
+#define I3C1_RXBUFFERSIZE                      I3C1_TXBUFFERSIZE
+
+/* Buffer used for reception */
+uint8_t aI3C1_RxBuffer[I3C1_RXBUFFERSIZE] __attribute__((section("noncacheable_buffer")));
+
+
+/* Descriptor for private data transmit */
+I3C_PrivateTypeDef aPrivateDescriptor[2] = \
+{
+	{SENSOR_ADDRESS_1, {aI3C1_TxBuffer, I3C1_TXBUFFERSIZE}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
+	{SENSOR_ADDRESS_1, {NULL, 0}, {aI3C1_RxBuffer, I3C1_RXBUFFERSIZE}, HAL_I3C_DIRECTION_READ}
+};
+
 void TestI3C1()
 {
+	int status;
+
 	// Test I3C1
 	/*##- Prepare context buffers process ##################################*/
 	/* Prepare Transmit context buffer with the different parameters */
@@ -744,47 +668,22 @@ void TestI3C1()
 							   &aPrivateDescriptor[I3C_IDX_FRAME_1],
 							   &aI3C1_ContextBuffers[I3C_IDX_FRAME_1],
 							   aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size,
-							   I2C_PRIVATE_WITHOUT_ARB_STOP) != HAL_OK)
+							   I2C_PRIVATE_WITHOUT_ARB_RESTART) != HAL_OK)
 	{
 		/* Error_Handler() function is called when error occurs. */
 		Error_Handler();
 	}
 
-
-	/*##- Add context buffer receive in Frame context ######################*/
-	if (HAL_I3C_AddDescToFrame(&hi3c1,
-							   NULL,
-							   &aPrivateDescriptor[I3C_IDX_FRAME_2],
-							   &aI3C1_ContextBuffers[I3C_IDX_FRAME_2],
-							   aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size,
-							   I2C_PRIVATE_WITHOUT_ARB_STOP) != HAL_OK)
+	status = HAL_I3C_Ctrl_Transmit_IT(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_1]) ;
+	if (status!= HAL_OK)
 	{
 		/* Error_Handler() function is called when error occurs. */
 		Error_Handler();
 	}
 
-	/*##- Start the reception process ######################################*/
-	/* Receive private data processus */
-	if (HAL_I3C_Ctrl_Receive_DMA(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_2]) != HAL_OK)
-	{
-		/* Error_Handler() function is called when error occurs. */
-		Error_Handler();
-	}
-	/*  Before starting a new communication transfer, you need to check the current
-	  state of the peripheral; if it is busy you need to wait for the end of current
-	  transfer before starting a new one.
-	  For simplicity reasons, this example is just waiting till the end of the
-	  transfer, but application may perform other tasks while transfer operation
-	  is ongoing. */
 	while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)
 	{
-	}
-
-	/*##- Compare the sent and received buffers ############################*/
-	if (Buffercmp((uint8_t *)aTxBuffer, (uint8_t *)aRxBuffer, RXBUFFERSIZE))
-	{
-		/* Processing Error */
-		Error_Handler();
+		status = 1;
 	}
 
 	return;

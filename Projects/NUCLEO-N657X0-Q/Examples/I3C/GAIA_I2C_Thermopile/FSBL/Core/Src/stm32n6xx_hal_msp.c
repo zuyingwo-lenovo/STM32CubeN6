@@ -23,11 +23,6 @@
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
-extern DMA_HandleTypeDef handle_GPDMA1_Channel2;
-
-extern DMA_HandleTypeDef handle_GPDMA1_Channel1;
-
-extern DMA_HandleTypeDef handle_GPDMA1_Channel0;
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
@@ -259,73 +254,6 @@ void HAL_I3C_MspInit(I3C_HandleTypeDef* hi3c)
     GPIO_InitStruct.Alternate = GPIO_AF5_I3C1;
     HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-    /* I3C1 DMA Init */
-    /* GPDMA1_REQUEST_I3C1_TX Init */
-    handle_GPDMA1_Channel2.Instance = GPDMA1_Channel2;
-    handle_GPDMA1_Channel2.Init.Request = GPDMA1_REQUEST_I3C1_TX;
-    handle_GPDMA1_Channel2.Init.BlkHWRequest = DMA_BREQ_SINGLE_BURST;
-    handle_GPDMA1_Channel2.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    handle_GPDMA1_Channel2.Init.SrcInc = DMA_SINC_INCREMENTED;
-    handle_GPDMA1_Channel2.Init.DestInc = DMA_DINC_FIXED;
-    handle_GPDMA1_Channel2.Init.SrcDataWidth = DMA_SRC_DATAWIDTH_BYTE;
-    handle_GPDMA1_Channel2.Init.DestDataWidth = DMA_DEST_DATAWIDTH_BYTE;
-    handle_GPDMA1_Channel2.Init.Priority = DMA_LOW_PRIORITY_LOW_WEIGHT;
-    handle_GPDMA1_Channel2.Init.SrcBurstLength = 1;
-    handle_GPDMA1_Channel2.Init.DestBurstLength = 1;
-    handle_GPDMA1_Channel2.Init.TransferAllocatedPort = DMA_SRC_ALLOCATED_PORT0|DMA_DEST_ALLOCATED_PORT0;
-    handle_GPDMA1_Channel2.Init.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;
-    handle_GPDMA1_Channel2.Init.Mode = DMA_NORMAL;
-    if (HAL_DMA_Init(&handle_GPDMA1_Channel2) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    __HAL_LINKDMA(hi3c, hdmatx, handle_GPDMA1_Channel2);
-
-    /* GPDMA1_REQUEST_I3C1_RX Init */
-    handle_GPDMA1_Channel1.Instance = GPDMA1_Channel1;
-    handle_GPDMA1_Channel1.Init.Request = GPDMA1_REQUEST_I3C1_RX;
-    handle_GPDMA1_Channel1.Init.BlkHWRequest = DMA_BREQ_SINGLE_BURST;
-    handle_GPDMA1_Channel1.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    handle_GPDMA1_Channel1.Init.SrcInc = DMA_SINC_FIXED;
-    handle_GPDMA1_Channel1.Init.DestInc = DMA_DINC_INCREMENTED;
-    handle_GPDMA1_Channel1.Init.SrcDataWidth = DMA_SRC_DATAWIDTH_BYTE;
-    handle_GPDMA1_Channel1.Init.DestDataWidth = DMA_DEST_DATAWIDTH_BYTE;
-    handle_GPDMA1_Channel1.Init.Priority = DMA_LOW_PRIORITY_LOW_WEIGHT;
-    handle_GPDMA1_Channel1.Init.SrcBurstLength = 1;
-    handle_GPDMA1_Channel1.Init.DestBurstLength = 1;
-    handle_GPDMA1_Channel1.Init.TransferAllocatedPort = DMA_SRC_ALLOCATED_PORT0|DMA_DEST_ALLOCATED_PORT0;
-    handle_GPDMA1_Channel1.Init.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;
-    handle_GPDMA1_Channel1.Init.Mode = DMA_NORMAL;
-    if (HAL_DMA_Init(&handle_GPDMA1_Channel1) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    __HAL_LINKDMA(hi3c, hdmarx, handle_GPDMA1_Channel1);
-
-    /* GPDMA1_REQUEST_I3C1_TC Init */
-    handle_GPDMA1_Channel0.Instance = GPDMA1_Channel0;
-    handle_GPDMA1_Channel0.Init.Request = GPDMA1_REQUEST_I3C1_TC;
-    handle_GPDMA1_Channel0.Init.BlkHWRequest = DMA_BREQ_SINGLE_BURST;
-    handle_GPDMA1_Channel0.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    handle_GPDMA1_Channel0.Init.SrcInc = DMA_SINC_INCREMENTED;
-    handle_GPDMA1_Channel0.Init.DestInc = DMA_DINC_FIXED;
-    handle_GPDMA1_Channel0.Init.SrcDataWidth = DMA_SRC_DATAWIDTH_WORD;
-    handle_GPDMA1_Channel0.Init.DestDataWidth = DMA_DEST_DATAWIDTH_WORD;
-    handle_GPDMA1_Channel0.Init.Priority = DMA_LOW_PRIORITY_LOW_WEIGHT;
-    handle_GPDMA1_Channel0.Init.SrcBurstLength = 1;
-    handle_GPDMA1_Channel0.Init.DestBurstLength = 1;
-    handle_GPDMA1_Channel0.Init.TransferAllocatedPort = DMA_SRC_ALLOCATED_PORT0|DMA_DEST_ALLOCATED_PORT0;
-    handle_GPDMA1_Channel0.Init.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;
-    handle_GPDMA1_Channel0.Init.Mode = DMA_NORMAL;
-    if (HAL_DMA_Init(&handle_GPDMA1_Channel0) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    __HAL_LINKDMA(hi3c, hdmacr, handle_GPDMA1_Channel0);
-
     /* I3C1 interrupt Init */
     HAL_NVIC_SetPriority(I3C1_EV_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(I3C1_EV_IRQn);
@@ -360,11 +288,6 @@ void HAL_I3C_MspDeInit(I3C_HandleTypeDef* hi3c)
     PE5     ------> I3C1_SCL
     */
     HAL_GPIO_DeInit(GPIOE, GPIO_PIN_6|GPIO_PIN_5);
-
-    /* I3C1 DMA DeInit */
-    HAL_DMA_DeInit(hi3c->hdmatx);
-    HAL_DMA_DeInit(hi3c->hdmarx);
-    HAL_DMA_DeInit(hi3c->hdmacr);
 
     /* I3C1 interrupt DeInit */
     HAL_NVIC_DisableIRQ(I3C1_EV_IRQn);
