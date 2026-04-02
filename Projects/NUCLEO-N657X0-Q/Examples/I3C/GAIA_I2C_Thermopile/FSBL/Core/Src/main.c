@@ -65,7 +65,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define I3C_IDX_FRAME_1         0U  /* Index of Frame 1 */
+#define I3C_IDX_FRAME_2         1U  /* Index of Frame 2 */
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -92,6 +93,28 @@ uint8_t aTxBuffer[] = " ****I2C_TwoBoards communication based on Polling****  "
 #define RXBUFFERSIZE                      TXBUFFERSIZE
 /* Buffer used for reception */
 uint8_t aRxBuffer[RXBUFFERSIZE];
+
+
+/* Context buffer related to Frame context, contain different buffer value for a communication */
+I3C_XferTypeDef aI3C1_ContextBuffers[2] __attribute__((section("noncacheable_buffer")));
+
+/* Buffer used for transmission */
+uint8_t aI3C1_TxBuffer[] = " ****I2C_TwoBoards communication based on IT****  ****I2C_TwoBoards communication based on IT****  ****I2C_TwoBoards communication based on IT**** ";
+
+/* Buffer used for reception */
+uint8_t aI3C1_RxBuffer[RXBUFFERSIZE] __attribute__((section("noncacheable_buffer")));
+
+/* Buffer used by HAL to compute control data for the Private Communication */
+uint32_t aI3C1_ControlBuffer[0xF] __attribute__((section("noncacheable_buffer")));
+
+#define I3C1_TXBUFFERSIZE                      (COUNTOF(aI3C1_TxBuffer) - 1)
+#define I3C1_RXBUFFERSIZE                      I3C1_TXBUFFERSIZE
+/* Descriptor for private data transmit */
+I3C_PrivateTypeDef aPrivateDescriptor[2] = \
+{
+	{SENSOR_ADDRESS_1, {aI3C1_TxBuffer, I3C1_TXBUFFERSIZE}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
+	{SENSOR_ADDRESS_1, {NULL, 0}, {aI3C1_RxBuffer, I3C1_RXBUFFERSIZE}, HAL_I3C_DIRECTION_READ}
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -150,6 +173,7 @@ int main(void)
     /* USER CODE END WHILE */
 	  int status;
 	  do{
+		  // Test I2C1
 		  status = HAL_I2C_Master_Transmit(
 				  &hi2c1, (uint16_t)I2C_ADDRESS_ACC1,
 				  (uint8_t *)aTxBuffer, 2,
@@ -161,6 +185,53 @@ int main(void)
 	       When Acknowledge failure occurs (Slave don't acknowledge its address)
 	       Master restarts communication */
 	    if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF) {
+	      Error_Handler();
+	    }
+
+		// Test I3C1
+	    /*##- Prepare context buffers process ##################################*/
+	    /* Prepare Transmit context buffer with the different parameters */
+	    aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
+	    aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size    = 1;
+	    aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.pBuffer   = aI3C1_TxBuffer;
+	    aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.Size      = I3C1_TXBUFFERSIZE;
+
+	    /* Prepare Receive context buffer with the different parameters */
+	    aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
+	    aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size    = 1;
+	    aI3C1_ContextBuffers[I3C_IDX_FRAME_2].RxBuf.pBuffer   = aI3C1_RxBuffer;
+	    aI3C1_ContextBuffers[I3C_IDX_FRAME_2].RxBuf.Size      = I3C1_RXBUFFERSIZE;
+
+	    /*##- Add context buffer transmit in Frame context #####################*/
+	    if (HAL_I3C_AddDescToFrame(&hi3c1,
+	                               NULL,
+	                               &aPrivateDescriptor[I3C_IDX_FRAME_1],
+	                               &aI3C1_ContextBuffers[I3C_IDX_FRAME_1],
+	                               aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size,
+	                               I2C_PRIVATE_WITHOUT_ARB_STOP) != HAL_OK)
+	    {
+	      /* Error_Handler() function is called when error occurs. */
+	      Error_Handler();
+	    }
+
+
+	    /*##- Add context buffer receive in Frame context ######################*/
+	    if (HAL_I3C_AddDescToFrame(&hi3c1,
+	                               NULL,
+	                               &aPrivateDescriptor[I3C_IDX_FRAME_2],
+	                               &aI3C1_ContextBuffers[I3C_IDX_FRAME_2],
+								   aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size,
+	                               I2C_PRIVATE_WITHOUT_ARB_STOP) != HAL_OK)
+	    {
+	      /* Error_Handler() function is called when error occurs. */
+	      Error_Handler();
+	    }
+
+	    /*##- Start the reception process ######################################*/
+	    /* Receive private data processus */
+	    if (HAL_I3C_Ctrl_Receive_DMA(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_2]) != HAL_OK)
+	    {
+	      /* Error_Handler() function is called when error occurs. */
 	      Error_Handler();
 	    }
 	  }while(status != HAL_OK);
@@ -401,9 +472,9 @@ static void MX_I3C1_Init(void)
   hi3c1.Init.CtrlBusCharacteristic.WaitTime = HAL_I3C_OWN_ACTIVITY_STATE_0;
   hi3c1.Init.CtrlBusCharacteristic.SCLPPLowDuration = 0x2f;
   hi3c1.Init.CtrlBusCharacteristic.SCLI3CHighDuration = 0x02;
-  hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x6f;
-  hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x2f;
-  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x42;
+  hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x52;
+  hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x4c;
+  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x35;
   hi3c1.Init.CtrlBusCharacteristic.BusIdleDuration = 0x3e;
   if (HAL_I3C_Init(&hi3c1) != HAL_OK)
   {
