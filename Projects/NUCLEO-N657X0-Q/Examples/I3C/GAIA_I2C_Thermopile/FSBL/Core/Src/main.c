@@ -101,8 +101,8 @@ uint8_t aRxBuffer[RXBUFFERSIZE];
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
-static void MX_I2C3_Init(void);
 static void MX_I3C1_Init(void);
+static void MX_I2C3_Init(void);
 /* USER CODE BEGIN PFP */
 static uint16_t Buffercmp(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t BufferLength);
 static void TestI2C1();
@@ -148,8 +148,8 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
-  MX_I2C3_Init();
   MX_I3C1_Init();
+  MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -404,13 +404,13 @@ static void MX_I3C1_Init(void)
   /* USER CODE END I3C1_Init 1 */
   hi3c1.Instance = I3C1;
   hi3c1.Mode = HAL_I3C_MODE_CONTROLLER;
-  hi3c1.Init.CtrlBusCharacteristic.SDAHoldTime = HAL_I3C_SDA_HOLD_TIME_1_5;
+  hi3c1.Init.CtrlBusCharacteristic.SDAHoldTime = HAL_I3C_SDA_HOLD_TIME_0_5;
   hi3c1.Init.CtrlBusCharacteristic.WaitTime = HAL_I3C_OWN_ACTIVITY_STATE_0;
-  hi3c1.Init.CtrlBusCharacteristic.SCLPPLowDuration = 0x3c;
+  hi3c1.Init.CtrlBusCharacteristic.SCLPPLowDuration = 0x02;
   hi3c1.Init.CtrlBusCharacteristic.SCLI3CHighDuration = 0x02;
-  hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x52;
-  hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x4c;
-  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x2a;
+  hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x94;
+  hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x3f;
+  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x51;
   hi3c1.Init.CtrlBusCharacteristic.BusIdleDuration = 0x3e;
   if (HAL_I3C_Init(&hi3c1) != HAL_OK)
   {
@@ -474,44 +474,44 @@ static void MX_GPIO_Init(void)
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
-  HAL_GPIO_WritePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin, GPIO_PIN_SET);
-
-  /*Configure GPIO pin : THRMPL1_PD */
-  THRMPL1_PD_GPIO_InitStruct.Pin = THRMPL1_PD_Pin;
-  THRMPL1_PD_GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  THRMPL1_PD_GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  THRMPL1_PD_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  HAL_GPIO_Init(THRMPL1_PD_GPIO_Port, &THRMPL1_PD_GPIO_InitStruct);
-
-
-  HAL_GPIO_WritePin(THRMPL1_ALERT_GPIO_Port, THRMPL1_ALERT_Pin, GPIO_PIN_SET);
-
-  /*Configure GPIO pin : THRMPL1_ALERT */
-  THRMPL1_ALERT_GPIO_InitStruct.Pin = THRMPL1_ALERT_Pin;
-  THRMPL1_ALERT_GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  THRMPL1_ALERT_GPIO_InitStruct.Pull = GPIO_PULLUP;
-  THRMPL1_ALERT_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  HAL_GPIO_Init(THRMPL1_ALERT_GPIO_Port, &THRMPL1_ALERT_GPIO_InitStruct);
-
-
-  HAL_GPIO_WritePin(THRMPL2_PD_GPIO_Port, THRMPL2_PD_Pin, GPIO_PIN_SET);
-
-  /*Configure GPIO pin : THRMPL2_PD */
-  THRMPL2_PD_GPIO_InitStruct.Pin = THRMPL2_PD_Pin;
-  THRMPL2_PD_GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  THRMPL2_PD_GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  THRMPL2_PD_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  HAL_GPIO_Init(THRMPL2_PD_GPIO_Port, &THRMPL2_PD_GPIO_InitStruct);
-
-
-  HAL_GPIO_WritePin(THRMPL2_ALERT_GPIO_Port, THRMPL2_ALERT_Pin, GPIO_PIN_SET);
-
-  /*Configure GPIO pin : THRMPL2_ALERT */
-  THRMPL2_ALERT_GPIO_InitStruct.Pin = THRMPL2_ALERT_Pin;
-  THRMPL2_ALERT_GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  THRMPL2_ALERT_GPIO_InitStruct.Pull = GPIO_PULLUP;
-  THRMPL2_ALERT_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  HAL_GPIO_Init(THRMPL2_ALERT_GPIO_Port, &THRMPL2_ALERT_GPIO_InitStruct);
+//  HAL_GPIO_WritePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin, GPIO_PIN_SET);
+//
+//  /*Configure GPIO pin : THRMPL1_PD */
+//  THRMPL1_PD_GPIO_InitStruct.Pin = THRMPL1_PD_Pin;
+//  THRMPL1_PD_GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//  THRMPL1_PD_GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+//  THRMPL1_PD_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+//  HAL_GPIO_Init(THRMPL1_PD_GPIO_Port, &THRMPL1_PD_GPIO_InitStruct);
+//
+//
+//  HAL_GPIO_WritePin(THRMPL1_ALERT_GPIO_Port, THRMPL1_ALERT_Pin, GPIO_PIN_SET);
+//
+//  /*Configure GPIO pin : THRMPL1_ALERT */
+//  THRMPL1_ALERT_GPIO_InitStruct.Pin = THRMPL1_ALERT_Pin;
+//  THRMPL1_ALERT_GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//  THRMPL1_ALERT_GPIO_InitStruct.Pull = GPIO_PULLUP;
+//  THRMPL1_ALERT_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+//  HAL_GPIO_Init(THRMPL1_ALERT_GPIO_Port, &THRMPL1_ALERT_GPIO_InitStruct);
+//
+//
+//  HAL_GPIO_WritePin(THRMPL2_PD_GPIO_Port, THRMPL2_PD_Pin, GPIO_PIN_SET);
+//
+//  /*Configure GPIO pin : THRMPL2_PD */
+//  THRMPL2_PD_GPIO_InitStruct.Pin = THRMPL2_PD_Pin;
+//  THRMPL2_PD_GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//  THRMPL2_PD_GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+//  THRMPL2_PD_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+//  HAL_GPIO_Init(THRMPL2_PD_GPIO_Port, &THRMPL2_PD_GPIO_InitStruct);
+//
+//
+//  HAL_GPIO_WritePin(THRMPL2_ALERT_GPIO_Port, THRMPL2_ALERT_Pin, GPIO_PIN_SET);
+//
+//  /*Configure GPIO pin : THRMPL2_ALERT */
+//  THRMPL2_ALERT_GPIO_InitStruct.Pin = THRMPL2_ALERT_Pin;
+//  THRMPL2_ALERT_GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//  THRMPL2_ALERT_GPIO_InitStruct.Pull = GPIO_PULLUP;
+//  THRMPL2_ALERT_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+//  HAL_GPIO_Init(THRMPL2_ALERT_GPIO_Port, &THRMPL2_ALERT_GPIO_InitStruct);
 
   /* USER CODE END MX_GPIO_Init_2 */
 }
@@ -640,8 +640,8 @@ uint8_t aI3C1_RxBuffer[I3C1_RXBUFFERSIZE] __attribute__((section("noncacheable_b
 /* Descriptor for private data transmit */
 I3C_PrivateTypeDef aPrivateDescriptor[2] = \
 {
-	{SENSOR_ADDRESS_1, {aI3C1_TxBuffer, I3C1_TXBUFFERSIZE}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
-	{SENSOR_ADDRESS_1, {NULL, 0}, {aI3C1_RxBuffer, I3C1_RXBUFFERSIZE}, HAL_I3C_DIRECTION_READ}
+	{SENSOR_ADDRESS_2, {aI3C1_TxBuffer, I3C1_TXBUFFERSIZE}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
+	{SENSOR_ADDRESS_2, {NULL, 0}, {aI3C1_RxBuffer, I3C1_RXBUFFERSIZE}, HAL_I3C_DIRECTION_READ}
 };
 
 void TestI3C1()
@@ -668,7 +668,8 @@ void TestI3C1()
 							   &aPrivateDescriptor[I3C_IDX_FRAME_1],
 							   &aI3C1_ContextBuffers[I3C_IDX_FRAME_1],
 							   aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size,
-							   I2C_PRIVATE_WITHOUT_ARB_RESTART) != HAL_OK)
+							   I2C_PRIVATE_WITHOUT_ARB_STOP)
+			!= HAL_OK)
 	{
 		/* Error_Handler() function is called when error occurs. */
 		Error_Handler();
