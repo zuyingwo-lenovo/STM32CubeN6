@@ -129,6 +129,8 @@ static void MX_I2C3_Init(void);
 static void MX_I3C1_Init(void);
 /* USER CODE BEGIN PFP */
 static uint16_t Buffercmp(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t BufferLength);
+static void TestI2C1();
+static void TestI3C1();
 
 /* USER CODE END PFP */
 
@@ -180,111 +182,15 @@ int main(void)
     /* USER CODE END WHILE */
 	  int status;
 	  do{
+		  status=0;
 			// Test I2C1
 //			status = HAL_I2C_Master_Transmit(
 //				  &hi2c1, (uint16_t)SENSOR_ADDRESS_1,
 //				  (uint8_t *)aTxBuffer, 2,
 //				  10000);
-		    uint8_t Addr_0x7f = 0x00;
-			status = HAL_I2C_Mem_Write(
-					&hi2c1, (uint16_t)I2C_ADDRESS_ACC1,
-					0x7F,
-					1,
-					(uint8_t *)&Addr_0x7f,
-					1,
-					10000
-					);
+		  	TestI2C1();
 
-			/* Error_Handler() function is called when Timeout error occurs.
-			   When Acknowledge failure occurs (Slave don't acknowledge its address)
-			   Master restarts communication */
-			if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
-				Error_Handler();
-			}
-
-			if(status != HAL_OK){
-				break;
-			}
-
-			status = HAL_I2C_Mem_Read(
-					&hi2c1,(uint16_t)I2C_ADDRESS_ACC1,
-					0x00,
-					1,
-					(uint8_t *)aRxBuffer,
-					2,
-					10000);
-
-			if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
-				Error_Handler();
-			}
-
-			if(status != HAL_OK){
-				break;
-			}
-
-			// Test I3C1
-			/*##- Prepare context buffers process ##################################*/
-			/* Prepare Transmit context buffer with the different parameters */
-			aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
-			aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size    = 1;
-			aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.pBuffer   = aI3C1_TxBuffer;
-			aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.Size      = I3C1_TXBUFFERSIZE;
-
-			/* Prepare Receive context buffer with the different parameters */
-			aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
-			aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size    = 1;
-			aI3C1_ContextBuffers[I3C_IDX_FRAME_2].RxBuf.pBuffer   = aI3C1_RxBuffer;
-			aI3C1_ContextBuffers[I3C_IDX_FRAME_2].RxBuf.Size      = I3C1_RXBUFFERSIZE;
-
-			/*##- Add context buffer transmit in Frame context #####################*/
-			if (HAL_I3C_AddDescToFrame(&hi3c1,
-									   NULL,
-									   &aPrivateDescriptor[I3C_IDX_FRAME_1],
-									   &aI3C1_ContextBuffers[I3C_IDX_FRAME_1],
-									   aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size,
-									   I2C_PRIVATE_WITHOUT_ARB_STOP) != HAL_OK)
-			{
-				/* Error_Handler() function is called when error occurs. */
-				Error_Handler();
-			}
-
-
-			/*##- Add context buffer receive in Frame context ######################*/
-			if (HAL_I3C_AddDescToFrame(&hi3c1,
-									   NULL,
-									   &aPrivateDescriptor[I3C_IDX_FRAME_2],
-									   &aI3C1_ContextBuffers[I3C_IDX_FRAME_2],
-									   aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size,
-									   I2C_PRIVATE_WITHOUT_ARB_STOP) != HAL_OK)
-			{
-				/* Error_Handler() function is called when error occurs. */
-				Error_Handler();
-			}
-
-			/*##- Start the reception process ######################################*/
-			/* Receive private data processus */
-			if (HAL_I3C_Ctrl_Receive_DMA(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_2]) != HAL_OK)
-			{
-				/* Error_Handler() function is called when error occurs. */
-				Error_Handler();
-			}
-			/*  Before starting a new communication transfer, you need to check the current
-			  state of the peripheral; if it is busy you need to wait for the end of current
-			  transfer before starting a new one.
-			  For simplicity reasons, this example is just waiting till the end of the
-			  transfer, but application may perform other tasks while transfer operation
-			  is ongoing. */
-			while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)
-			{
-			}
-
-			/*##- Compare the sent and received buffers ############################*/
-			if (Buffercmp((uint8_t *)aTxBuffer, (uint8_t *)aRxBuffer, RXBUFFERSIZE))
-			{
-				/* Processing Error */
-				Error_Handler();
-			}
-
+		  	TestI3C1();
 	  }while(status != HAL_OK);
 
     /* USER CODE BEGIN 3 */
@@ -718,6 +624,121 @@ static uint16_t Buffercmp(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t BufferL
 
   return 0;
 }
+
+void TestI2C1()
+{
+	int status;
+	do{
+
+	    uint8_t Addr_0x7f = 0x00;
+		status = HAL_I2C_Mem_Write(
+				&hi2c1, (uint16_t)I2C_ADDRESS_ACC1,
+				0x7F,
+				1,
+				(uint8_t *)&Addr_0x7f,
+				1,
+				10000
+				);
+
+		/* Error_Handler() function is called when Timeout error occurs.
+		   When Acknowledge failure occurs (Slave don't acknowledge its address)
+		   Master restarts communication */
+		if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+			Error_Handler();
+		}
+
+		if(status != HAL_OK){
+			break;
+		}
+
+		status = HAL_I2C_Mem_Read(
+				&hi2c1,(uint16_t)I2C_ADDRESS_ACC1,
+				0x00,
+				1,
+				(uint8_t *)aRxBuffer,
+				2,
+				10000);
+
+		if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+			Error_Handler();
+		}
+
+		if(status != HAL_OK){
+			break;
+		}
+	}while(0);
+
+	return;
+}
+
+void TestI3C1()
+{
+	// Test I3C1
+	/*##- Prepare context buffers process ##################################*/
+	/* Prepare Transmit context buffer with the different parameters */
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size    = 1;
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.pBuffer   = aI3C1_TxBuffer;
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.Size      = I3C1_TXBUFFERSIZE;
+
+	/* Prepare Receive context buffer with the different parameters */
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size    = 1;
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].RxBuf.pBuffer   = aI3C1_RxBuffer;
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].RxBuf.Size      = I3C1_RXBUFFERSIZE;
+
+	/*##- Add context buffer transmit in Frame context #####################*/
+	if (HAL_I3C_AddDescToFrame(&hi3c1,
+							   NULL,
+							   &aPrivateDescriptor[I3C_IDX_FRAME_1],
+							   &aI3C1_ContextBuffers[I3C_IDX_FRAME_1],
+							   aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size,
+							   I2C_PRIVATE_WITHOUT_ARB_STOP) != HAL_OK)
+	{
+		/* Error_Handler() function is called when error occurs. */
+		Error_Handler();
+	}
+
+
+	/*##- Add context buffer receive in Frame context ######################*/
+	if (HAL_I3C_AddDescToFrame(&hi3c1,
+							   NULL,
+							   &aPrivateDescriptor[I3C_IDX_FRAME_2],
+							   &aI3C1_ContextBuffers[I3C_IDX_FRAME_2],
+							   aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size,
+							   I2C_PRIVATE_WITHOUT_ARB_STOP) != HAL_OK)
+	{
+		/* Error_Handler() function is called when error occurs. */
+		Error_Handler();
+	}
+
+	/*##- Start the reception process ######################################*/
+	/* Receive private data processus */
+	if (HAL_I3C_Ctrl_Receive_DMA(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_2]) != HAL_OK)
+	{
+		/* Error_Handler() function is called when error occurs. */
+		Error_Handler();
+	}
+	/*  Before starting a new communication transfer, you need to check the current
+	  state of the peripheral; if it is busy you need to wait for the end of current
+	  transfer before starting a new one.
+	  For simplicity reasons, this example is just waiting till the end of the
+	  transfer, but application may perform other tasks while transfer operation
+	  is ongoing. */
+	while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)
+	{
+	}
+
+	/*##- Compare the sent and received buffers ############################*/
+	if (Buffercmp((uint8_t *)aTxBuffer, (uint8_t *)aRxBuffer, RXBUFFERSIZE))
+	{
+		/* Processing Error */
+		Error_Handler();
+	}
+
+	return;
+}
+
 /* USER CODE END 4 */
 
 /**
