@@ -80,6 +80,9 @@ I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c3;
 
 I3C_HandleTypeDef hi3c1;
+DMA_HandleTypeDef handle_GPDMA1_Channel2;
+DMA_HandleTypeDef handle_GPDMA1_Channel1;
+DMA_HandleTypeDef handle_GPDMA1_Channel0;
 
 /* USER CODE BEGIN PV */
 /* Buffer used for transmission */
@@ -119,11 +122,14 @@ I3C_PrivateTypeDef aPrivateDescriptor[2] = \
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void SystemIsolation_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_GPDMA1_Init(void);
 static void MX_I2C1_Init(void);
-static void MX_I3C1_Init(void);
 static void MX_I2C3_Init(void);
+static void MX_I3C1_Init(void);
 /* USER CODE BEGIN PFP */
+static uint16_t Buffercmp(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t BufferLength);
 
 /* USER CODE END PFP */
 
@@ -159,9 +165,11 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_GPDMA1_Init();
   MX_I2C1_Init();
-  MX_I3C1_Init();
   MX_I2C3_Init();
+  MX_I3C1_Init();
+  SystemIsolation_Config();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -173,67 +181,85 @@ int main(void)
     /* USER CODE END WHILE */
 	  int status;
 	  do{
-		  // Test I2C1
-		  status = HAL_I2C_Master_Transmit(
+			// Test I2C1
+			status = HAL_I2C_Master_Transmit(
 				  &hi2c1, (uint16_t)I2C_ADDRESS_ACC1,
 				  (uint8_t *)aTxBuffer, 2,
 				  10000);
-		  if(status == HAL_OK){
-		  	break;
-		  }
-	    /* Error_Handler() function is called when Timeout error occurs.
-	       When Acknowledge failure occurs (Slave don't acknowledge its address)
-	       Master restarts communication */
-	    if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF) {
-	      Error_Handler();
-	    }
 
-		// Test I3C1
-	    /*##- Prepare context buffers process ##################################*/
-	    /* Prepare Transmit context buffer with the different parameters */
-	    aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
-	    aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size    = 1;
-	    aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.pBuffer   = aI3C1_TxBuffer;
-	    aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.Size      = I3C1_TXBUFFERSIZE;
+			/* Error_Handler() function is called when Timeout error occurs.
+			   When Acknowledge failure occurs (Slave don't acknowledge its address)
+			   Master restarts communication */
+			if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+				Error_Handler();
+			}
 
-	    /* Prepare Receive context buffer with the different parameters */
-	    aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
-	    aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size    = 1;
-	    aI3C1_ContextBuffers[I3C_IDX_FRAME_2].RxBuf.pBuffer   = aI3C1_RxBuffer;
-	    aI3C1_ContextBuffers[I3C_IDX_FRAME_2].RxBuf.Size      = I3C1_RXBUFFERSIZE;
+			if(status != HAL_OK){
+				break;
+			}
+			// Test I3C1
+			/*##- Prepare context buffers process ##################################*/
+			/* Prepare Transmit context buffer with the different parameters */
+			aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
+			aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size    = 1;
+			aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.pBuffer   = aI3C1_TxBuffer;
+			aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.Size      = I3C1_TXBUFFERSIZE;
 
-	    /*##- Add context buffer transmit in Frame context #####################*/
-	    if (HAL_I3C_AddDescToFrame(&hi3c1,
-	                               NULL,
-	                               &aPrivateDescriptor[I3C_IDX_FRAME_1],
-	                               &aI3C1_ContextBuffers[I3C_IDX_FRAME_1],
-	                               aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size,
-	                               I2C_PRIVATE_WITHOUT_ARB_STOP) != HAL_OK)
-	    {
-	      /* Error_Handler() function is called when error occurs. */
-	      Error_Handler();
-	    }
+			/* Prepare Receive context buffer with the different parameters */
+			aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
+			aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size    = 1;
+			aI3C1_ContextBuffers[I3C_IDX_FRAME_2].RxBuf.pBuffer   = aI3C1_RxBuffer;
+			aI3C1_ContextBuffers[I3C_IDX_FRAME_2].RxBuf.Size      = I3C1_RXBUFFERSIZE;
+
+			/*##- Add context buffer transmit in Frame context #####################*/
+			if (HAL_I3C_AddDescToFrame(&hi3c1,
+									   NULL,
+									   &aPrivateDescriptor[I3C_IDX_FRAME_1],
+									   &aI3C1_ContextBuffers[I3C_IDX_FRAME_1],
+									   aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size,
+									   I2C_PRIVATE_WITHOUT_ARB_STOP) != HAL_OK)
+			{
+				/* Error_Handler() function is called when error occurs. */
+				Error_Handler();
+			}
 
 
-	    /*##- Add context buffer receive in Frame context ######################*/
-	    if (HAL_I3C_AddDescToFrame(&hi3c1,
-	                               NULL,
-	                               &aPrivateDescriptor[I3C_IDX_FRAME_2],
-	                               &aI3C1_ContextBuffers[I3C_IDX_FRAME_2],
-								   aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size,
-	                               I2C_PRIVATE_WITHOUT_ARB_STOP) != HAL_OK)
-	    {
-	      /* Error_Handler() function is called when error occurs. */
-	      Error_Handler();
-	    }
+			/*##- Add context buffer receive in Frame context ######################*/
+			if (HAL_I3C_AddDescToFrame(&hi3c1,
+									   NULL,
+									   &aPrivateDescriptor[I3C_IDX_FRAME_2],
+									   &aI3C1_ContextBuffers[I3C_IDX_FRAME_2],
+									   aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size,
+									   I2C_PRIVATE_WITHOUT_ARB_STOP) != HAL_OK)
+			{
+				/* Error_Handler() function is called when error occurs. */
+				Error_Handler();
+			}
 
-	    /*##- Start the reception process ######################################*/
-	    /* Receive private data processus */
-	    if (HAL_I3C_Ctrl_Receive_DMA(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_2]) != HAL_OK)
-	    {
-	      /* Error_Handler() function is called when error occurs. */
-	      Error_Handler();
-	    }
+			/*##- Start the reception process ######################################*/
+			/* Receive private data processus */
+			if (HAL_I3C_Ctrl_Receive_DMA(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_2]) != HAL_OK)
+			{
+				/* Error_Handler() function is called when error occurs. */
+				Error_Handler();
+			}
+			/*  Before starting a new communication transfer, you need to check the current
+			  state of the peripheral; if it is busy you need to wait for the end of current
+			  transfer before starting a new one.
+			  For simplicity reasons, this example is just waiting till the end of the
+			  transfer, but application may perform other tasks while transfer operation
+			  is ongoing. */
+			while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)
+			{
+			}
+
+			/*##- Compare the sent and received buffers ############################*/
+			if (Buffercmp((uint8_t *)aTxBuffer, (uint8_t *)aRxBuffer, RXBUFFERSIZE))
+			{
+				/* Processing Error */
+				Error_Handler();
+			}
+
 	  }while(status != HAL_OK);
 
     /* USER CODE BEGIN 3 */
@@ -343,6 +369,38 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief GPDMA1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPDMA1_Init(void)
+{
+
+  /* USER CODE BEGIN GPDMA1_Init 0 */
+
+  /* USER CODE END GPDMA1_Init 0 */
+
+  /* Peripheral clock enable */
+  __HAL_RCC_GPDMA1_CLK_ENABLE();
+
+  /* GPDMA1 interrupt Init */
+    HAL_NVIC_SetPriority(GPDMA1_Channel0_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(GPDMA1_Channel0_IRQn);
+    HAL_NVIC_SetPriority(GPDMA1_Channel1_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(GPDMA1_Channel1_IRQn);
+    HAL_NVIC_SetPriority(GPDMA1_Channel2_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(GPDMA1_Channel2_IRQn);
+
+  /* USER CODE BEGIN GPDMA1_Init 1 */
+
+  /* USER CODE END GPDMA1_Init 1 */
+  /* USER CODE BEGIN GPDMA1_Init 2 */
+
+  /* USER CODE END GPDMA1_Init 2 */
+
 }
 
 /**
@@ -534,8 +592,107 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_2 */
 }
 
-/* USER CODE BEGIN 4 */
+/**
+  * @brief RIF Initialization Function
+  * @param None
+  * @retval None
+  */
+  static void SystemIsolation_Config(void)
+{
 
+/* USER CODE BEGIN RIF_Init 0 */
+
+/* USER CODE END RIF_Init 0 */
+
+  /* set all required IPs as secure privileged */
+  __HAL_RCC_RIFSC_CLK_ENABLE();
+
+  /* RIF-Aware IPs Config */
+
+  /* set up GPDMA configuration */
+  /* set GPDMA1 channel 0 used by I3C1 */
+  if (HAL_DMA_ConfigChannelAttributes(&handle_GPDMA1_Channel0,DMA_CHANNEL_SEC|DMA_CHANNEL_PRIV|DMA_CHANNEL_SRC_SEC|DMA_CHANNEL_DEST_SEC)!= HAL_OK )
+  {
+    Error_Handler();
+  }
+  /* set GPDMA1 channel 1 used by I3C1 */
+  if (HAL_DMA_ConfigChannelAttributes(&handle_GPDMA1_Channel1,DMA_CHANNEL_SEC|DMA_CHANNEL_PRIV|DMA_CHANNEL_SRC_SEC|DMA_CHANNEL_DEST_SEC)!= HAL_OK )
+  {
+    Error_Handler();
+  }
+  /* set GPDMA1 channel 2 used by I3C1 */
+  if (HAL_DMA_ConfigChannelAttributes(&handle_GPDMA1_Channel2,DMA_CHANNEL_SEC|DMA_CHANNEL_PRIV|DMA_CHANNEL_SRC_SEC|DMA_CHANNEL_DEST_SEC)!= HAL_OK )
+  {
+    Error_Handler();
+  }
+
+/* USER CODE BEGIN RIF_Init 1 */
+
+/* USER CODE END RIF_Init 1 */
+/* USER CODE BEGIN RIF_Init 2 */
+
+/* USER CODE END RIF_Init 2 */
+
+}
+
+/* USER CODE BEGIN 4 */
+/**
+  * @brief  Controller Transmit Complete callback.
+  * @param  hi3c : [IN] Pointer to an I3C_HandleTypeDef structure that contains the configuration information
+  *                     for the specified I3C.
+  * @retval None
+  */
+void HAL_I3C_CtrlTxCpltCallback(I3C_HandleTypeDef *hi3c)
+{
+  /* Toggle LD1: Transfer in transmission process is correct */
+//  BSP_LED_Toggle(LD1);
+}
+
+/**
+  * @brief  Controller Reception Complete callback.
+  * @param  hi3c : [IN] Pointer to an I3C_HandleTypeDef structure that contains the configuration information
+  *                     for the specified I3C.
+  * @retval None
+  */
+void HAL_I3C_CtrlRxCpltCallback(I3C_HandleTypeDef *hi3c)
+{
+  /* Toggle LD1: Transfer in Reception process is correct */
+//  BSP_LED_Toggle(LD1);
+}
+
+/**
+  * @brief  Error callback.
+  * @param  hi3c : [IN] Pointer to an I3C_HandleTypeDef structure that contains the configuration information
+  *                     for the specified I3C.
+  * @retval None
+  */
+void HAL_I3C_ErrorCallback(I3C_HandleTypeDef *hi3c)
+{
+  /* Error_Handler() function is called when error occurs. */
+  Error_Handler();
+}
+
+/**
+  * @brief  Compares two buffers.
+  * @param  pBuffer1, pBuffer2: buffers to be compared.
+  * @param  BufferLength: buffer's length
+  * @retval 0  : pBuffer1 identical to pBuffer2
+  *         >0 : pBuffer1 differs from pBuffer2
+  */
+static uint16_t Buffercmp(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t BufferLength)
+{
+  while (BufferLength--)
+  {
+    if ((*pBuffer1) != *pBuffer2)
+    {
+      return BufferLength;
+    }
+    pBuffer1++;
+    pBuffer2++;
+  }
+
+  return 0;
+}
 /* USER CODE END 4 */
 
 /**
