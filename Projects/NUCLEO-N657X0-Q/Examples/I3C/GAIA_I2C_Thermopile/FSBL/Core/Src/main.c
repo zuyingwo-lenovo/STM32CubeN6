@@ -87,9 +87,8 @@ DMA_HandleTypeDef handle_GPDMA1_Channel0;
 /* USER CODE BEGIN PV */
 /* Buffer used for transmission */
 
-uint8_t aTxBuffer[] = " ****I2C_TwoBoards communication based on Polling****  "
-                      "****I2C_TwoBoards communication based on Polling****  "
-                      "****I2C_TwoBoards communication based on Polling**** ";
+uint8_t aTxBuffer[] = {0x7F};
+
 #define COUNTOF(__BUFFER__)   (sizeof(__BUFFER__) / sizeof(*(__BUFFER__)))
 
 #define TXBUFFERSIZE                      (COUNTOF(aTxBuffer) - 1)
@@ -182,10 +181,19 @@ int main(void)
 	  int status;
 	  do{
 			// Test I2C1
-			status = HAL_I2C_Master_Transmit(
-				  &hi2c1, (uint16_t)I2C_ADDRESS_ACC1,
-				  (uint8_t *)aTxBuffer, 2,
-				  10000);
+//			status = HAL_I2C_Master_Transmit(
+//				  &hi2c1, (uint16_t)SENSOR_ADDRESS_1,
+//				  (uint8_t *)aTxBuffer, 2,
+//				  10000);
+		    uint8_t Addr_0x7f = 0x00;
+			status = HAL_I2C_Mem_Write(
+					&hi2c1, (uint16_t)I2C_ADDRESS_ACC1,
+					0x7F,
+					1,
+					(uint8_t *)&Addr_0x7f,
+					1,
+					10000
+					);
 
 			/* Error_Handler() function is called when Timeout error occurs.
 			   When Acknowledge failure occurs (Slave don't acknowledge its address)
@@ -197,6 +205,23 @@ int main(void)
 			if(status != HAL_OK){
 				break;
 			}
+
+			status = HAL_I2C_Mem_Read(
+					&hi2c1,(uint16_t)I2C_ADDRESS_ACC1,
+					0x00,
+					1,
+					(uint8_t *)aRxBuffer,
+					2,
+					10000);
+
+			if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+				Error_Handler();
+			}
+
+			if(status != HAL_OK){
+				break;
+			}
+
 			// Test I3C1
 			/*##- Prepare context buffers process ##################################*/
 			/* Prepare Transmit context buffer with the different parameters */
