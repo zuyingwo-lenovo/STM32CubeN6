@@ -28,6 +28,7 @@
 //#define SENSOR_ADDRESS_2 (0x57 << 1)
 #define SENSOR_ADDRESS_1 (0x34 << 0)
 #define SENSOR_ADDRESS_2 (0x57 << 0)
+//#define SENSOR_ADDRESS_1 (0x2B << 0)
 
 /* PAF9615C2 Bank0 Registers */
 #define REG_PART_ID_L 0x00
@@ -79,7 +80,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 I2C_HandleTypeDef hi2c1;
-I2C_HandleTypeDef hi2c3;
 
 I3C_HandleTypeDef hi3c1;
 
@@ -102,7 +102,6 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_I3C1_Init(void);
-static void MX_I2C3_Init(void);
 /* USER CODE BEGIN PFP */
 static uint16_t Buffercmp(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t BufferLength);
 static void TestI2C1();
@@ -149,7 +148,6 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   MX_I3C1_Init();
-  MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -336,61 +334,6 @@ static void MX_I2C1_Init(void)
 }
 
 /**
-  * @brief I2C3 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_I2C3_Init(void)
-{
-
-  /* USER CODE BEGIN I2C3_Init 0 */
-
-  /* USER CODE END I2C3_Init 0 */
-
-  /* USER CODE BEGIN I2C3_Init 1 */
-
-  /* USER CODE END I2C3_Init 1 */
-  hi2c3.Instance = I2C3;
-  hi2c3.Init.Timing = 0x00902787;
-  hi2c3.Init.OwnAddress1 = 0;
-  hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c3.Init.OwnAddress2 = 0;
-  hi2c3.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
-  hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c3.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Analogue filter
-  */
-  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c3, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Digital filter
-  */
-  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c3, 0) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** I2C Fast mode Plus enable
-  */
-  if (HAL_I2CEx_ConfigFastModePlus(&hi2c3, I2C_FASTMODEPLUS_ENABLE) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN I2C3_Init 2 */
-
-  /* USER CODE END I2C3_Init 2 */
-
-}
-
-/**
   * @brief I3C1 Initialization Function
   * @param None
   * @retval None
@@ -414,9 +357,9 @@ static void MX_I3C1_Init(void)
   hi3c1.Init.CtrlBusCharacteristic.WaitTime = HAL_I3C_OWN_ACTIVITY_STATE_0;
   hi3c1.Init.CtrlBusCharacteristic.SCLPPLowDuration = 0x00;
   hi3c1.Init.CtrlBusCharacteristic.SCLI3CHighDuration = 0x00;
-  hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x0d;
-  hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x05;
-  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x08;
+  hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x09;
+  hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x09;
+  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x06;
   hi3c1.Init.CtrlBusCharacteristic.BusIdleDuration = 0x06;
   if (HAL_I3C_Init(&hi3c1) != HAL_OK)
   {
@@ -476,48 +419,46 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
-//  HAL_GPIO_WritePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin, GPIO_PIN_SET);
-//
-//  /*Configure GPIO pin : THRMPL1_PD */
-//  THRMPL1_PD_GPIO_InitStruct.Pin = THRMPL1_PD_Pin;
-//  THRMPL1_PD_GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-//  THRMPL1_PD_GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-//  THRMPL1_PD_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-//  HAL_GPIO_Init(THRMPL1_PD_GPIO_Port, &THRMPL1_PD_GPIO_InitStruct);
-//
-//
-//  HAL_GPIO_WritePin(THRMPL1_ALERT_GPIO_Port, THRMPL1_ALERT_Pin, GPIO_PIN_SET);
-//
-//  /*Configure GPIO pin : THRMPL1_ALERT */
-//  THRMPL1_ALERT_GPIO_InitStruct.Pin = THRMPL1_ALERT_Pin;
-//  THRMPL1_ALERT_GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-//  THRMPL1_ALERT_GPIO_InitStruct.Pull = GPIO_PULLUP;
-//  THRMPL1_ALERT_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-//  HAL_GPIO_Init(THRMPL1_ALERT_GPIO_Port, &THRMPL1_ALERT_GPIO_InitStruct);
-//
-//
-//  HAL_GPIO_WritePin(THRMPL2_PD_GPIO_Port, THRMPL2_PD_Pin, GPIO_PIN_SET);
-//
-//  /*Configure GPIO pin : THRMPL2_PD */
-//  THRMPL2_PD_GPIO_InitStruct.Pin = THRMPL2_PD_Pin;
-//  THRMPL2_PD_GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-//  THRMPL2_PD_GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-//  THRMPL2_PD_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-//  HAL_GPIO_Init(THRMPL2_PD_GPIO_Port, &THRMPL2_PD_GPIO_InitStruct);
-//
-//
-//  HAL_GPIO_WritePin(THRMPL2_ALERT_GPIO_Port, THRMPL2_ALERT_Pin, GPIO_PIN_SET);
-//
-//  /*Configure GPIO pin : THRMPL2_ALERT */
-//  THRMPL2_ALERT_GPIO_InitStruct.Pin = THRMPL2_ALERT_Pin;
-//  THRMPL2_ALERT_GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-//  THRMPL2_ALERT_GPIO_InitStruct.Pull = GPIO_PULLUP;
-//  THRMPL2_ALERT_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-//  HAL_GPIO_Init(THRMPL2_ALERT_GPIO_Port, &THRMPL2_ALERT_GPIO_InitStruct);
+  HAL_GPIO_WritePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin : THRMPL1_PD */
+  THRMPL1_PD_GPIO_InitStruct.Pin = THRMPL1_PD_Pin;
+  THRMPL1_PD_GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  THRMPL1_PD_GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  THRMPL1_PD_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(THRMPL1_PD_GPIO_Port, &THRMPL1_PD_GPIO_InitStruct);
+
+  HAL_GPIO_WritePin(THRMPL1_ALERT_GPIO_Port, THRMPL1_ALERT_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin : THRMPL1_ALERT */
+  THRMPL1_ALERT_GPIO_InitStruct.Pin = THRMPL1_ALERT_Pin;
+  THRMPL1_ALERT_GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  THRMPL1_ALERT_GPIO_InitStruct.Pull = GPIO_PULLUP;
+  THRMPL1_ALERT_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(THRMPL1_ALERT_GPIO_Port, &THRMPL1_ALERT_GPIO_InitStruct);
+
+
+  HAL_GPIO_WritePin(THRMPL2_PD_GPIO_Port, THRMPL2_PD_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin : THRMPL2_PD */
+  THRMPL2_PD_GPIO_InitStruct.Pin = THRMPL2_PD_Pin;
+  THRMPL2_PD_GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  THRMPL2_PD_GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  THRMPL2_PD_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(THRMPL2_PD_GPIO_Port, &THRMPL2_PD_GPIO_InitStruct);
+
+
+  HAL_GPIO_WritePin(THRMPL2_ALERT_GPIO_Port, THRMPL2_ALERT_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin : THRMPL2_ALERT */
+  THRMPL2_ALERT_GPIO_InitStruct.Pin = THRMPL2_ALERT_Pin;
+  THRMPL2_ALERT_GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  THRMPL2_ALERT_GPIO_InitStruct.Pull = GPIO_PULLUP;
+  THRMPL2_ALERT_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(THRMPL2_ALERT_GPIO_Port, &THRMPL2_ALERT_GPIO_InitStruct);
 
   /* USER CODE END MX_GPIO_Init_2 */
 }
@@ -646,14 +587,15 @@ uint8_t aI3C1_RxBuffer[I3C1_RXBUFFERSIZE] __attribute__((section("noncacheable_b
 /* Descriptor for private data transmit */
 I3C_PrivateTypeDef aPrivateDescriptor[2] = \
 {
-	{SENSOR_ADDRESS_2, {aI3C1_TxBuffer, I3C1_TXBUFFERSIZE}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
-	{SENSOR_ADDRESS_2, {NULL, 0}, {aI3C1_RxBuffer, I3C1_RXBUFFERSIZE}, HAL_I3C_DIRECTION_READ}
+	{SENSOR_ADDRESS_1, {aI3C1_TxBuffer, I3C1_TXBUFFERSIZE}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
+	{SENSOR_ADDRESS_1, {NULL, 0}, {aI3C1_RxBuffer, I3C1_RXBUFFERSIZE}, HAL_I3C_DIRECTION_READ}
 };
 
 void TestI3C1()
 {
 	int status;
-
+	HAL_GPIO_TogglePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin);
+	HAL_GPIO_TogglePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin);
 	// Test I3C1
 	/*##- Prepare context buffers process ##################################*/
 	/* Prepare Transmit context buffer with the different parameters */
