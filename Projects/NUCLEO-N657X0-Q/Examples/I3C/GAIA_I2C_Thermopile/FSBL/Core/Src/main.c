@@ -22,7 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #define I2C_ADDRESS_ACC1 (0x18 << 1)
-#define I2C_ADDRESS_TOF  (0x29 << 1)
+#define I2C_ADDRESS_TOF  (0x52 << 1)
 /* PAF9615C2 Sensor Address (7-bit 0x34 shifted for HAL) */
 //#define SENSOR_ADDRESS_1 (0x34 << 1)
 //#define SENSOR_ADDRESS_2 (0x57 << 1)
@@ -62,6 +62,8 @@
 
 #define TOF_RESET_Pin GPIO_PIN_5
 #define TOF_RESET_Port GPIOP
+#define TOF_INIT_Pin GPIO_PIN_6
+#define TOF_INIT_Port GPIOP
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -475,6 +477,8 @@ static void MX_GPIO_Init(void)
 
   GPIO_InitTypeDef TOF_RESET_GPIO_InitStruct = {0};
 
+  GPIO_InitTypeDef TOF_INIT_GPIO_InitStruct = {0};
+
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
@@ -531,6 +535,14 @@ static void MX_GPIO_Init(void)
   TOF_RESET_GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   TOF_RESET_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(TOF_RESET_Port, &TOF_RESET_GPIO_InitStruct);
+
+  HAL_GPIO_WritePin(TOF_INIT_Port, TOF_INIT_Pin, GPIO_PIN_SET);
+  /*Configure GPIO pin : TOF_INIT */
+  TOF_INIT_GPIO_InitStruct.Pin = TOF_INIT_Pin;
+  TOF_INIT_GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  TOF_INIT_GPIO_InitStruct.Pull = GPIO_PULLUP;
+  TOF_INIT_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(TOF_RESET_Port, &TOF_INIT_GPIO_InitStruct);
 
   /* USER CODE END MX_GPIO_Init_2 */
 }
@@ -647,22 +659,38 @@ void TestI2C3()
 
 	HAL_GPIO_TogglePin(TOF_RESET_Port, TOF_RESET_Pin);
 
+	status = HAL_GPIO_ReadPin(TOF_INIT_Port, TOF_INIT_Pin);
+
 	do{
 
 	    uint8_t Addr_0x7f = 0x00;
-		status = HAL_I2C_Mem_Write(
-				&hi2c1, (uint16_t)I2C_ADDRESS_TOF,
+//		status = HAL_I2C_Mem_Write(
+//				&hi2c3, (uint16_t)I2C_ADDRESS_TOF,
+//				0x7F,
+//				1,
+//				(uint8_t *)&Addr_0x7f,
+//				1,
+//				10000
+//				);
+		while (HAL_I2C_Mem_Write(
+				&hi2c3, (uint16_t)I2C_ADDRESS_TOF,
 				0x7F,
 				1,
 				(uint8_t *)&Addr_0x7f,
 				1,
 				10000
-				);
-
+			) != HAL_OK) {
+			/* Error_Handler() function is called when Timeout error occurs.
+			   When Acknowledge failure occurs (Slave don't acknowledge its address)
+			   Master restarts communication */
+			if (HAL_I2C_GetError(&hi2c3) != HAL_I2C_ERROR_AF) {
+				Error_Handler();
+			}
+		}
 		/* Error_Handler() function is called when Timeout error occurs.
 		   When Acknowledge failure occurs (Slave don't acknowledge its address)
 		   Master restarts communication */
-		if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+		if (HAL_I2C_GetError(&hi2c3) != HAL_I2C_ERROR_AF && status != HAL_OK) {
 			Error_Handler();
 		}
 
@@ -671,14 +699,14 @@ void TestI2C3()
 		}
 
 		status = HAL_I2C_Mem_Read(
-				&hi2c1,(uint16_t)I2C_ADDRESS_TOF,
+				&hi2c3,(uint16_t)I2C_ADDRESS_TOF,
 				0x00,
 				1,
 				(uint8_t *)aRxBuffer,
 				2,
 				10000);
 
-		if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+		if (HAL_I2C_GetError(&hi2c3) != HAL_I2C_ERROR_AF && status != HAL_OK) {
 			Error_Handler();
 		}
 
