@@ -21,7 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#define I2C_ADDRESS_ACC1 (0x18 << 1)
+//#define I2C_ADDRESS_ACC1 (0x18 << 1)
+#define I2C_ADDRESS_ACC1 (0x34 << 1)
 #define I2C_ADDRESS_TOF  (0x52 << 1)
 /* PAF9615C2 Sensor Address (7-bit 0x34 shifted for HAL) */
 //#define SENSOR_ADDRESS_1 (0x34 << 1)
@@ -85,9 +86,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 I2C_HandleTypeDef hi2c1;
-I2C_HandleTypeDef hi2c3;
-
-I3C_HandleTypeDef hi3c1;
 
 /* USER CODE BEGIN PV */
 /* Buffer used for transmission */
@@ -107,13 +105,11 @@ uint8_t aRxBuffer[RXBUFFERSIZE];
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
-static void MX_I3C1_Init(void);
-static void MX_I2C3_Init(void);
 /* USER CODE BEGIN PFP */
 static uint16_t Buffercmp(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t BufferLength);
 static void TestI2C1();
-static void TestI2C3();
-static void TestI3C1();
+//static void TestI2C3();
+//static void TestI3C1();
 
 /* USER CODE END PFP */
 
@@ -155,8 +151,6 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
-  MX_I3C1_Init();
-  MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -170,11 +164,11 @@ int main(void)
 	  do{
 		  status=0;
 			// Test I2C1
-//		  	TestI2C1();
+		  	TestI2C1();
 
 //		  	TestI2C3();
 
-		  	TestI3C1();
+//		  	TestI3C1();
 	  }while(status != HAL_OK);
 
     /* USER CODE BEGIN 3 */
@@ -335,125 +329,6 @@ static void MX_I2C1_Init(void)
 }
 
 /**
-  * @brief I2C3 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_I2C3_Init(void)
-{
-
-  /* USER CODE BEGIN I2C3_Init 0 */
-
-  /* USER CODE END I2C3_Init 0 */
-
-  /* USER CODE BEGIN I2C3_Init 1 */
-
-  /* USER CODE END I2C3_Init 1 */
-  hi2c3.Instance = I2C3;
-  hi2c3.Init.Timing = 0x00500B27;
-  hi2c3.Init.OwnAddress1 = 0;
-  hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c3.Init.OwnAddress2 = 0;
-  hi2c3.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
-  hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c3.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Analogue filter
-  */
-  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c3, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Digital filter
-  */
-  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c3, 0) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** I2C Fast mode Plus enable
-  */
-  if (HAL_I2CEx_ConfigFastModePlus(&hi2c3, I2C_FASTMODEPLUS_ENABLE) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN I2C3_Init 2 */
-
-  /* USER CODE END I2C3_Init 2 */
-
-}
-
-/**
-  * @brief I3C1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_I3C1_Init(void)
-{
-
-  /* USER CODE BEGIN I3C1_Init 0 */
-
-  /* USER CODE END I3C1_Init 0 */
-
-  I3C_FifoConfTypeDef sFifoConfig = {0};
-  I3C_CtrlConfTypeDef sCtrlConfig = {0};
-
-  /* USER CODE BEGIN I3C1_Init 1 */
-
-  /* USER CODE END I3C1_Init 1 */
-  hi3c1.Instance = I3C1;
-  hi3c1.Mode = HAL_I3C_MODE_CONTROLLER;
-  hi3c1.Init.CtrlBusCharacteristic.SDAHoldTime = HAL_I3C_SDA_HOLD_TIME_0_5;
-  hi3c1.Init.CtrlBusCharacteristic.WaitTime = HAL_I3C_OWN_ACTIVITY_STATE_0;
-  hi3c1.Init.CtrlBusCharacteristic.SCLPPLowDuration = 0x00;
-  hi3c1.Init.CtrlBusCharacteristic.SCLI3CHighDuration = 0x00;
-  hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x09;
-  hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x09;
-  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0xa8;
-  hi3c1.Init.CtrlBusCharacteristic.BusIdleDuration = 0xc6;
-  if (HAL_I3C_Init(&hi3c1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure FIFO
-  */
-  sFifoConfig.RxFifoThreshold = HAL_I3C_RXFIFO_THRESHOLD_1_4;
-  sFifoConfig.TxFifoThreshold = HAL_I3C_TXFIFO_THRESHOLD_1_4;
-  sFifoConfig.ControlFifo = HAL_I3C_CONTROLFIFO_DISABLE;
-  sFifoConfig.StatusFifo = HAL_I3C_STATUSFIFO_DISABLE;
-  if (HAL_I3C_SetConfigFifo(&hi3c1, &sFifoConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure controller
-  */
-  sCtrlConfig.DynamicAddr = 0;
-  sCtrlConfig.StallTime = 0x00;
-  sCtrlConfig.HotJoinAllowed = DISABLE;
-  sCtrlConfig.ACKStallState = DISABLE;
-  sCtrlConfig.CCCStallState = DISABLE;
-  sCtrlConfig.TxStallState = DISABLE;
-  sCtrlConfig.RxStallState = DISABLE;
-  sCtrlConfig.HighKeeperSDA = DISABLE;
-  if (HAL_I3C_Ctrl_Config(&hi3c1, &sCtrlConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN I3C1_Init 2 */
-
-  /* USER CODE END I3C1_Init 2 */
-
-}
-
-/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -476,10 +351,7 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -542,41 +414,41 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-/**
-  * @brief  Controller Transmit Complete callback.
-  * @param  hi3c : [IN] Pointer to an I3C_HandleTypeDef structure that contains the configuration information
-  *                     for the specified I3C.
-  * @retval None
-  */
-void HAL_I3C_CtrlTxCpltCallback(I3C_HandleTypeDef *hi3c)
-{
-  /* Toggle LD1: Transfer in transmission process is correct */
-//  BSP_LED_Toggle(LD1);
-}
-
-/**
-  * @brief  Controller Reception Complete callback.
-  * @param  hi3c : [IN] Pointer to an I3C_HandleTypeDef structure that contains the configuration information
-  *                     for the specified I3C.
-  * @retval None
-  */
-void HAL_I3C_CtrlRxCpltCallback(I3C_HandleTypeDef *hi3c)
-{
-  /* Toggle LD1: Transfer in Reception process is correct */
-//  BSP_LED_Toggle(LD1);
-}
-
-/**
-  * @brief  Error callback.
-  * @param  hi3c : [IN] Pointer to an I3C_HandleTypeDef structure that contains the configuration information
-  *                     for the specified I3C.
-  * @retval None
-  */
-void HAL_I3C_ErrorCallback(I3C_HandleTypeDef *hi3c)
-{
-  /* Error_Handler() function is called when error occurs. */
-  Error_Handler();
-}
+///**
+//  * @brief  Controller Transmit Complete callback.
+//  * @param  hi3c : [IN] Pointer to an I3C_HandleTypeDef structure that contains the configuration information
+//  *                     for the specified I3C.
+//  * @retval None
+//  */
+//void HAL_I3C_CtrlTxCpltCallback(I3C_HandleTypeDef *hi3c)
+//{
+//  /* Toggle LD1: Transfer in transmission process is correct */
+////  BSP_LED_Toggle(LD1);
+//}
+//
+///**
+//  * @brief  Controller Reception Complete callback.
+//  * @param  hi3c : [IN] Pointer to an I3C_HandleTypeDef structure that contains the configuration information
+//  *                     for the specified I3C.
+//  * @retval None
+//  */
+//void HAL_I3C_CtrlRxCpltCallback(I3C_HandleTypeDef *hi3c)
+//{
+//  /* Toggle LD1: Transfer in Reception process is correct */
+////  BSP_LED_Toggle(LD1);
+//}
+//
+///**
+//  * @brief  Error callback.
+//  * @param  hi3c : [IN] Pointer to an I3C_HandleTypeDef structure that contains the configuration information
+//  *                     for the specified I3C.
+//  * @retval None
+//  */
+//void HAL_I3C_ErrorCallback(I3C_HandleTypeDef *hi3c)
+//{
+//  /* Error_Handler() function is called when error occurs. */
+//  Error_Handler();
+//}
 
 /**
   * @brief  Compares two buffers.
@@ -646,142 +518,142 @@ void TestI2C1()
 	return;
 }
 
-
-void TestI2C3()
-{
-	int status;
-
-	HAL_GPIO_TogglePin(TOF_RESET_Port, TOF_RESET_Pin);
-	status = HAL_GPIO_ReadPin(TOF_RESET_Port, TOF_RESET_Pin);
-
-	status = HAL_GPIO_ReadPin(TOF_INIT_Port, TOF_INIT_Pin);
-
-	do{
-
-	    uint8_t Addr_0x7f = 0x00;
-//		status = HAL_I2C_Mem_Write(
+//
+//void TestI2C3()
+//{
+//	int status;
+//
+//	HAL_GPIO_TogglePin(TOF_RESET_Port, TOF_RESET_Pin);
+//	status = HAL_GPIO_ReadPin(TOF_RESET_Port, TOF_RESET_Pin);
+//
+//	status = HAL_GPIO_ReadPin(TOF_INIT_Port, TOF_INIT_Pin);
+//
+//	do{
+//
+//	    uint8_t Addr_0x7f = 0x00;
+////		status = HAL_I2C_Mem_Write(
+////				&hi2c3, (uint16_t)I2C_ADDRESS_TOF,
+////				0x7F,
+////				1,
+////				(uint8_t *)&Addr_0x7f,
+////				1,
+////				10000
+////				);
+//		while (HAL_I2C_Mem_Write(
 //				&hi2c3, (uint16_t)I2C_ADDRESS_TOF,
 //				0x7F,
 //				1,
 //				(uint8_t *)&Addr_0x7f,
 //				1,
 //				10000
-//				);
-		while (HAL_I2C_Mem_Write(
-				&hi2c3, (uint16_t)I2C_ADDRESS_TOF,
-				0x7F,
-				1,
-				(uint8_t *)&Addr_0x7f,
-				1,
-				10000
-			) != HAL_OK) {
-			/* Error_Handler() function is called when Timeout error occurs.
-			   When Acknowledge failure occurs (Slave don't acknowledge its address)
-			   Master restarts communication */
-			if (HAL_I2C_GetError(&hi2c3) != HAL_I2C_ERROR_AF) {
-				Error_Handler();
-			}
-		}
-		/* Error_Handler() function is called when Timeout error occurs.
-		   When Acknowledge failure occurs (Slave don't acknowledge its address)
-		   Master restarts communication */
-		if (HAL_I2C_GetError(&hi2c3) != HAL_I2C_ERROR_AF && status != HAL_OK) {
-			Error_Handler();
-		}
-
-		if(status != HAL_OK){
-			break;
-		}
-
-		status = HAL_I2C_Mem_Read(
-				&hi2c3,(uint16_t)I2C_ADDRESS_TOF,
-				0x00,
-				1,
-				(uint8_t *)aRxBuffer,
-				2,
-				10000);
-
-		if (HAL_I2C_GetError(&hi2c3) != HAL_I2C_ERROR_AF && status != HAL_OK) {
-			Error_Handler();
-		}
-
-		if(status != HAL_OK){
-			break;
-		}
-	}while(0);
-
-	return;
-}
-
-
-/* Context buffer related to Frame context, contain different buffer value for a communication */
-I3C_XferTypeDef aI3C1_ContextBuffers[2] __attribute__((section("noncacheable_buffer")));
-/* Buffer used by HAL to compute control data for the Private Communication */
-uint32_t aI3C1_ControlBuffer[0xF] __attribute__((section("noncacheable_buffer")));
-
-/* Buffer used for transmission */
-uint8_t aI3C1_TxBuffer[] = {0x7f, 0x00};
-
-#define I3C1_TXBUFFERSIZE                      (COUNTOF(aI3C1_TxBuffer) - 1)
-#define I3C1_RXBUFFERSIZE                      I3C1_TXBUFFERSIZE
-
-/* Buffer used for reception */
-uint8_t aI3C1_RxBuffer[I3C1_RXBUFFERSIZE] __attribute__((section("noncacheable_buffer")));
-
-
-/* Descriptor for private data transmit */
-I3C_PrivateTypeDef aPrivateDescriptor[2] = \
-{
-	{SENSOR_ADDRESS_1, {aI3C1_TxBuffer, I3C1_TXBUFFERSIZE}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
-	{SENSOR_ADDRESS_1, {NULL, 0}, {aI3C1_RxBuffer, I3C1_RXBUFFERSIZE}, HAL_I3C_DIRECTION_READ}
-};
-
-void TestI3C1()
-{
-	int status;
-	HAL_GPIO_TogglePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin);
-	HAL_GPIO_TogglePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin);
-	// Test I3C1
-	/*##- Prepare context buffers process ##################################*/
-	/* Prepare Transmit context buffer with the different parameters */
-	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
-	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size    = 1;
-	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.pBuffer   = aI3C1_TxBuffer;
-	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.Size      = I3C1_TXBUFFERSIZE;
-
-	/* Prepare Receive context buffer with the different parameters */
-	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
-	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size    = 1;
-	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].RxBuf.pBuffer   = aI3C1_RxBuffer;
-	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].RxBuf.Size      = I3C1_RXBUFFERSIZE;
-
-	/*##- Add context buffer transmit in Frame context #####################*/
-	if (HAL_I3C_AddDescToFrame(&hi3c1,
-							   NULL,
-							   &aPrivateDescriptor[I3C_IDX_FRAME_1],
-							   &aI3C1_ContextBuffers[I3C_IDX_FRAME_1],
-							   aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size,
-							   I2C_PRIVATE_WITHOUT_ARB_STOP)
-			!= HAL_OK)
-	{
-		/* Error_Handler() function is called when error occurs. */
-		Error_Handler();
-	}
-
-	status = HAL_I3C_Ctrl_Transmit_IT(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_1]) ;
-	if (status!= HAL_OK)
-	{
-		/* Error_Handler() function is called when error occurs. */
-		Error_Handler();
-	}
-
-	while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)
-	{
-		status = 1;
-	}
-
-	return;
-}
+//			) != HAL_OK) {
+//			/* Error_Handler() function is called when Timeout error occurs.
+//			   When Acknowledge failure occurs (Slave don't acknowledge its address)
+//			   Master restarts communication */
+//			if (HAL_I2C_GetError(&hi2c3) != HAL_I2C_ERROR_AF) {
+//				Error_Handler();
+//			}
+//		}
+//		/* Error_Handler() function is called when Timeout error occurs.
+//		   When Acknowledge failure occurs (Slave don't acknowledge its address)
+//		   Master restarts communication */
+//		if (HAL_I2C_GetError(&hi2c3) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+//			Error_Handler();
+//		}
+//
+//		if(status != HAL_OK){
+//			break;
+//		}
+//
+//		status = HAL_I2C_Mem_Read(
+//				&hi2c3,(uint16_t)I2C_ADDRESS_TOF,
+//				0x00,
+//				1,
+//				(uint8_t *)aRxBuffer,
+//				2,
+//				10000);
+//
+//		if (HAL_I2C_GetError(&hi2c3) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+//			Error_Handler();
+//		}
+//
+//		if(status != HAL_OK){
+//			break;
+//		}
+//	}while(0);
+//
+//	return;
+//}
+//
+//
+///* Context buffer related to Frame context, contain different buffer value for a communication */
+//I3C_XferTypeDef aI3C1_ContextBuffers[2] __attribute__((section("noncacheable_buffer")));
+///* Buffer used by HAL to compute control data for the Private Communication */
+//uint32_t aI3C1_ControlBuffer[0xF] __attribute__((section("noncacheable_buffer")));
+//
+///* Buffer used for transmission */
+//uint8_t aI3C1_TxBuffer[] = {0x7f, 0x00};
+//
+//#define I3C1_TXBUFFERSIZE                      (COUNTOF(aI3C1_TxBuffer) - 1)
+//#define I3C1_RXBUFFERSIZE                      I3C1_TXBUFFERSIZE
+//
+///* Buffer used for reception */
+//uint8_t aI3C1_RxBuffer[I3C1_RXBUFFERSIZE] __attribute__((section("noncacheable_buffer")));
+//
+//
+///* Descriptor for private data transmit */
+//I3C_PrivateTypeDef aPrivateDescriptor[2] = \
+//{
+//	{SENSOR_ADDRESS_1, {aI3C1_TxBuffer, I3C1_TXBUFFERSIZE}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
+//	{SENSOR_ADDRESS_1, {NULL, 0}, {aI3C1_RxBuffer, I3C1_RXBUFFERSIZE}, HAL_I3C_DIRECTION_READ}
+//};
+//
+//void TestI3C1()
+//{
+//	int status;
+//	HAL_GPIO_TogglePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin);
+//	HAL_GPIO_TogglePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin);
+//	// Test I3C1
+//	/*##- Prepare context buffers process ##################################*/
+//	/* Prepare Transmit context buffer with the different parameters */
+//	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
+//	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size    = 1;
+//	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.pBuffer   = aI3C1_TxBuffer;
+//	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.Size      = I3C1_TXBUFFERSIZE;
+//
+//	/* Prepare Receive context buffer with the different parameters */
+//	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
+//	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size    = 1;
+//	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].RxBuf.pBuffer   = aI3C1_RxBuffer;
+//	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].RxBuf.Size      = I3C1_RXBUFFERSIZE;
+//
+//	/*##- Add context buffer transmit in Frame context #####################*/
+//	if (HAL_I3C_AddDescToFrame(&hi3c1,
+//							   NULL,
+//							   &aPrivateDescriptor[I3C_IDX_FRAME_1],
+//							   &aI3C1_ContextBuffers[I3C_IDX_FRAME_1],
+//							   aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size,
+//							   I2C_PRIVATE_WITHOUT_ARB_STOP)
+//			!= HAL_OK)
+//	{
+//		/* Error_Handler() function is called when error occurs. */
+//		Error_Handler();
+//	}
+//
+//	status = HAL_I3C_Ctrl_Transmit_IT(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_1]) ;
+//	if (status!= HAL_OK)
+//	{
+//		/* Error_Handler() function is called when error occurs. */
+//		Error_Handler();
+//	}
+//
+//	while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)
+//	{
+//		status = 1;
+//	}
+//
+//	return;
+//}
 
 /* USER CODE END 4 */
 
