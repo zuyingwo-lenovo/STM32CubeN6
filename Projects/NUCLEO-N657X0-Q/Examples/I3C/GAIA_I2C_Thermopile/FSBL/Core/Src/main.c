@@ -498,21 +498,124 @@ void TestI2C1()
 			break;
 		}
 
-		status = HAL_I2C_Mem_Read(
-				&hi2c1,(uint16_t)I2C_ADDRESS_ACC1,
-				0x00,
-				1,
-				(uint8_t *)aRxBuffer,
-				2,
-				10000);
+		{
+			// Get Part ID
+			status = HAL_I2C_Mem_Read(
+					&hi2c1,(uint16_t)I2C_ADDRESS_ACC1,
+					0x00,
+					1,
+					(uint8_t *)aRxBuffer,
+					2,
+					10000);
 
-		if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
-			Error_Handler();
+			if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+				Error_Handler();
+			}
+
+			if(status != HAL_OK){
+				break;
+			}
 		}
 
-		if(status != HAL_OK){
+		if (aRxBuffer[0] != 0x71 && aRxBuffer[1] != 0x2) {
 			break;
 		}
+
+		{
+		    // Switch to Bank0, Register 0x7F write 0x00
+			uint8_t Addr_0x7f = 0x00;
+			status = HAL_I2C_Mem_Write(
+					&hi2c1, (uint16_t)I2C_ADDRESS_ACC1,
+					0x7F,
+					1,
+					(uint8_t *)&Addr_0x7f,
+					1,
+					10000
+					);
+
+			if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+				Error_Handler();
+			}
+
+			if(status != HAL_OK){
+				break;
+			}
+		}
+
+		{
+		    // Code Reset, Register 0x7D write 0x5A
+		    uint8_t Addr_0x7d = 0x5A;
+			status = HAL_I2C_Mem_Write(
+					&hi2c1, (uint16_t)I2C_ADDRESS_ACC1,
+					0x7D,
+					1,
+					(uint8_t *)&Addr_0x7d,
+					1,
+					10000
+					);
+
+			if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+				Error_Handler();
+			}
+
+			if(status != HAL_OK){
+				break;
+			}
+		}
+
+		// Wait for 120ms
+		HAL_Delay(120);
+
+		{
+			// Get Status Flag 0x05
+			status = HAL_I2C_Mem_Read(
+					&hi2c1,(uint16_t)I2C_ADDRESS_ACC1,
+					0x05,
+					1,
+					(uint8_t *)aRxBuffer,
+					2,
+					10000);
+			printf("Test>Status Flag: %x", (aRxBuffer[0]));
+
+//			if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+//				Error_Handler();
+//			}
+//
+//			if(status != HAL_OK){
+//				break;
+//			}
+		}
+
+		if (((aRxBuffer[0] >> 6) & 0x01) != 1){
+			break;
+		}
+
+
+		{
+			// Get Alert_Mode 0x03
+			status = HAL_I2C_Mem_Read(
+					&hi2c1,(uint16_t)I2C_ADDRESS_ACC1,
+					0x03,
+					1,
+					(uint8_t *)aRxBuffer,
+					2,
+					10000);
+
+			printf("Test>Alert_Mode: %x", (aRxBuffer[0] & 0x03));
+
+			// Get One-Shot 0x26
+			status = HAL_I2C_Mem_Read(
+					&hi2c1,(uint16_t)I2C_ADDRESS_ACC1,
+					0x26,
+					1,
+					(uint8_t *)aRxBuffer,
+					2,
+					10000);
+
+			printf("Test>One-Shot: 0x%x", (aRxBuffer[0] & 0x03));
+
+		}
+
 	}while(0);
 
 	return;
