@@ -170,9 +170,9 @@ int main(void)
 	  do{
 		  status=0;
 			// Test I2C1
-		  	TestI2C1();
+//		  	TestI2C1();
 
-		  	TestI2C3();
+//		  	TestI2C3();
 
 		  	TestI3C1();
 	  }while(status != HAL_OK);
@@ -250,13 +250,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL1.PLLFractional = 0;
   RCC_OscInitStruct.PLL1.PLLP1 = 1;
   RCC_OscInitStruct.PLL1.PLLP2 = 1;
-  RCC_OscInitStruct.PLL2.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL2.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL2.PLLM = 1;
-  RCC_OscInitStruct.PLL2.PLLN = 25;
-  RCC_OscInitStruct.PLL2.PLLFractional = 0;
-  RCC_OscInitStruct.PLL2.PLLP1 = 1;
-  RCC_OscInitStruct.PLL2.PLLP2 = 1;
+  RCC_OscInitStruct.PLL2.PLLState = RCC_PLL_NONE;
   RCC_OscInitStruct.PLL3.PLLState = RCC_PLL_NONE;
   RCC_OscInitStruct.PLL4.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -356,7 +350,7 @@ static void MX_I2C3_Init(void)
 
   /* USER CODE END I2C3_Init 1 */
   hi2c3.Instance = I2C3;
-  hi2c3.Init.Timing = 0x00300B29;
+  hi2c3.Init.Timing = 0x00500B27;
   hi2c3.Init.OwnAddress1 = 0;
   hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -421,8 +415,8 @@ static void MX_I3C1_Init(void)
   hi3c1.Init.CtrlBusCharacteristic.SCLI3CHighDuration = 0x00;
   hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x09;
   hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x09;
-  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x06;
-  hi3c1.Init.CtrlBusCharacteristic.BusIdleDuration = 0x06;
+  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0xa8;
+  hi3c1.Init.CtrlBusCharacteristic.BusIdleDuration = 0xc6;
   if (HAL_I3C_Init(&hi3c1) != HAL_OK)
   {
     Error_Handler();
@@ -658,6 +652,7 @@ void TestI2C3()
 	int status;
 
 	HAL_GPIO_TogglePin(TOF_RESET_Port, TOF_RESET_Pin);
+	status = HAL_GPIO_ReadPin(TOF_RESET_Port, TOF_RESET_Pin);
 
 	status = HAL_GPIO_ReadPin(TOF_INIT_Port, TOF_INIT_Pin);
 
