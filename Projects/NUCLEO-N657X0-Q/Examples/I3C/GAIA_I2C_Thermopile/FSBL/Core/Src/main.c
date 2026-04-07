@@ -73,8 +73,12 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define I3C_IDX_FRAME_1         0U  /* Index of Frame 1 */
-#define I3C_IDX_FRAME_2         1U  /* Index of Frame 2 */
+enum{
+	I3C_IDX_FRAME_1 = 0U,  	/* Index of Frame 1 */
+	I3C_IDX_FRAME_2,	/* Index of Frame 2 */
+	I3C_IDX_FRAME_3,	/* Index of Frame 2 */
+	I3C_IDX_FRAME_NUM,
+};
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -300,11 +304,11 @@ static void MX_I3C1_Init(void)
   hi3c1.Mode = HAL_I3C_MODE_CONTROLLER;
   hi3c1.Init.CtrlBusCharacteristic.SDAHoldTime = HAL_I3C_SDA_HOLD_TIME_0_5;
   hi3c1.Init.CtrlBusCharacteristic.WaitTime = HAL_I3C_OWN_ACTIVITY_STATE_0;
-  hi3c1.Init.CtrlBusCharacteristic.SCLPPLowDuration = 0x00;
+  hi3c1.Init.CtrlBusCharacteristic.SCLPPLowDuration = 0x0e;
   hi3c1.Init.CtrlBusCharacteristic.SCLI3CHighDuration = 0x00;
-  hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x27;
-  hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x00;
-  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x16;
+  hi3c1.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x17;
+  hi3c1.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x0f;
+  hi3c1.Init.CtrlBusCharacteristic.BusFreeDuration = 0x0e;
   hi3c1.Init.CtrlBusCharacteristic.BusIdleDuration = 0x0e;
   if (HAL_I3C_Init(&hi3c1) != HAL_OK)
   {
@@ -488,14 +492,14 @@ static uint16_t Buffercmp(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t BufferL
 
 
 /* Context buffer related to Frame context, contain different buffer value for a communication */
-I3C_XferTypeDef aI3C1_ContextBuffers[2] __attribute__((section("noncacheable_buffer")));
+I3C_XferTypeDef aI3C1_ContextBuffers[I3C_IDX_FRAME_NUM] __attribute__((section("noncacheable_buffer")));
 /* Buffer used by HAL to compute control data for the Private Communication */
 uint32_t aI3C1_ControlBuffer[0xF] __attribute__((section("noncacheable_buffer")));
 
 /* Buffer used for transmission */
 uint8_t aI3C1_TxBuffer[] = {0x7f, 0x00};
 
-#define I3C1_TXBUFFERSIZE                      (COUNTOF(aI3C1_TxBuffer) - 1)
+#define I3C1_TXBUFFERSIZE                      2
 #define I3C1_RXBUFFERSIZE                      I3C1_TXBUFFERSIZE
 
 /* Buffer used for reception */
@@ -503,10 +507,11 @@ uint8_t aI3C1_RxBuffer[I3C1_RXBUFFERSIZE] __attribute__((section("noncacheable_b
 
 
 /* Descriptor for private data transmit */
-I3C_PrivateTypeDef aPrivateDescriptor[2] = \
+I3C_PrivateTypeDef aPrivateDescriptor[I3C_IDX_FRAME_NUM] = \
 {
-	{SENSOR_ADDRESS_1, {aI3C1_TxBuffer, I3C1_TXBUFFERSIZE}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
-	{SENSOR_ADDRESS_1, {NULL, 0}, {aI3C1_RxBuffer, I3C1_RXBUFFERSIZE}, HAL_I3C_DIRECTION_READ}
+	{SENSOR_ADDRESS_1, {aI3C1_TxBuffer, 2}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
+	{SENSOR_ADDRESS_1, {aI3C1_TxBuffer, 1}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
+	{SENSOR_ADDRESS_1, {NULL, 0}, {aI3C1_RxBuffer, 2}, HAL_I3C_DIRECTION_READ}
 };
 
 void TestI3C1()
@@ -517,29 +522,34 @@ void TestI3C1()
 	// Test I3C1
 	/*##- Prepare context buffers process ##################################*/
 	/* Prepare Transmit context buffer with the different parameters */
-	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
-	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size    = 1;
-	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.pBuffer   = aI3C1_TxBuffer;
-	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.Size      = I3C1_TXBUFFERSIZE;
-
-	/*##- Add context buffer transmit in Frame context #####################*/
-	if (HAL_I3C_AddDescToFrame(&hi3c1,
-							   NULL,
-							   &aPrivateDescriptor[I3C_IDX_FRAME_1],
-							   &aI3C1_ContextBuffers[I3C_IDX_FRAME_1],
-							   aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size,
-							   I2C_PRIVATE_WITHOUT_ARB_STOP)
-			!= HAL_OK)
 	{
-		/* Error_Handler() function is called when error occurs. */
-		Error_Handler();
-	}
 
-	status = HAL_I3C_Ctrl_Transmit_IT(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_1]) ;
-	if (status!= HAL_OK)
-	{
-		/* Error_Handler() function is called when error occurs. */
-		Error_Handler();
+		aI3C1_TxBuffer[0] = 0x7F;
+		aI3C1_TxBuffer[1] = 0x00;
+		aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
+		aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size    = 1;
+		aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.pBuffer   = aI3C1_TxBuffer;
+		aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.Size      = 2;
+
+		/*##- Add context buffer transmit in Frame context #####################*/
+		if (HAL_I3C_AddDescToFrame(&hi3c1,
+								   NULL,
+								   &aPrivateDescriptor[I3C_IDX_FRAME_1],
+								   &aI3C1_ContextBuffers[I3C_IDX_FRAME_1],
+								   aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size,
+								   I2C_PRIVATE_WITHOUT_ARB_STOP)
+				!= HAL_OK)
+		{
+			/* Error_Handler() function is called when error occurs. */
+			Error_Handler();
+		}
+
+		status = HAL_I3C_Ctrl_Transmit_IT(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_1]) ;
+		if (status!= HAL_OK)
+		{
+			/* Error_Handler() function is called when error occurs. */
+			Error_Handler();
+		}
 	}
 
 	while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)
@@ -547,30 +557,72 @@ void TestI3C1()
 		status = 1;
 	}
 
-	/* Prepare Receive context buffer with the different parameters */
-	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
-	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size    = 1;
-	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].RxBuf.pBuffer   = aI3C1_TxBuffer;
-	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].RxBuf.Size      = I3C1_RXBUFFERSIZE;
-
-	if (HAL_I3C_AddDescToFrame(&hi3c1,
-							   NULL,
-							   &aPrivateDescriptor[I3C_IDX_FRAME_2],
-							   &aI3C1_ContextBuffers[I3C_IDX_FRAME_2],
-							   aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size,
-							   I2C_PRIVATE_WITHOUT_ARB_STOP)
-			!= HAL_OK)
 	{
-		/* Error_Handler() function is called when error occurs. */
-		Error_Handler();
+
+		aI3C1_TxBuffer[0] = 0x00;
+		aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
+		aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size    = 1;
+		aI3C1_ContextBuffers[I3C_IDX_FRAME_2].TxBuf.pBuffer   = aI3C1_TxBuffer;
+		aI3C1_ContextBuffers[I3C_IDX_FRAME_2].TxBuf.Size      = 1;
+
+		/*##- Add context buffer transmit in Frame context #####################*/
+		if (HAL_I3C_AddDescToFrame(&hi3c1,
+								   NULL,
+								   &aPrivateDescriptor[I3C_IDX_FRAME_2],
+								   &aI3C1_ContextBuffers[I3C_IDX_FRAME_2],
+								   aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size,
+								   I2C_PRIVATE_WITHOUT_ARB_RESTART)
+				!= HAL_OK)
+		{
+			/* Error_Handler() function is called when error occurs. */
+			Error_Handler();
+		}
+
+		status = HAL_I3C_Ctrl_Transmit_IT(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_2]) ;
+		if (status!= HAL_OK)
+		{
+			/* Error_Handler() function is called when error occurs. */
+			Error_Handler();
+		}
 	}
 
-	status = HAL_I3C_Ctrl_Transmit_IT(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_1]) ;
-	if (status!= HAL_OK)
+	while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)
 	{
-		/* Error_Handler() function is called when error occurs. */
-		Error_Handler();
+		status = 1;
 	}
+
+	{
+		/* Prepare Receive context buffer with the different parameters */
+		aI3C1_ContextBuffers[I3C_IDX_FRAME_3].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
+		aI3C1_ContextBuffers[I3C_IDX_FRAME_3].CtrlBuf.Size    = 1;
+		aI3C1_ContextBuffers[I3C_IDX_FRAME_3].RxBuf.pBuffer   = aI3C1_RxBuffer;
+		aI3C1_ContextBuffers[I3C_IDX_FRAME_3].RxBuf.Size      = 2;
+
+		if (HAL_I3C_AddDescToFrame(&hi3c1,
+								   NULL,
+								   &aPrivateDescriptor[I3C_IDX_FRAME_3],
+								   &aI3C1_ContextBuffers[I3C_IDX_FRAME_3],
+								   aI3C1_ContextBuffers[I3C_IDX_FRAME_3].CtrlBuf.Size,
+								   I2C_PRIVATE_WITHOUT_ARB_STOP)
+				!= HAL_OK)
+		{
+			/* Error_Handler() function is called when error occurs. */
+			Error_Handler();
+		}
+
+		status = HAL_I3C_Ctrl_Receive_IT(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_3]) ;
+		if (status!= HAL_OK)
+		{
+			/* Error_Handler() function is called when error occurs. */
+			Error_Handler();
+		}
+	}
+
+	while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)
+	{
+		status = 1;
+	}
+
 
 	return;
 }
