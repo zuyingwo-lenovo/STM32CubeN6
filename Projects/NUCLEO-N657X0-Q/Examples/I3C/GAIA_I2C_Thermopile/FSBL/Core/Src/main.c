@@ -89,8 +89,10 @@ enum{
 /* Private variables ---------------------------------------------------------*/
 
 I2C_HandleTypeDef hi2c1;
+I2C_HandleTypeDef hi2c3;
 
 I3C_HandleTypeDef hi3c1;
+I3C_HandleTypeDef hi3c2;
 
 /* USER CODE BEGIN PV */
 /* Buffer used for transmission */
@@ -111,10 +113,14 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I3C1_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_I2C3_Init(void);
+static void MX_I3C2_Init(void);
 /* USER CODE BEGIN PFP */
 static uint16_t Buffercmp(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t BufferLength);
 static void TestI2C1();
+static void TestI2C3();
 static void TestI3C1();
+static void TestI3C2();
 
 /* USER CODE END PFP */
 
@@ -157,6 +163,8 @@ int main(void)
   MX_GPIO_Init();
   MX_I3C1_Init();
   MX_I2C1_Init();
+  MX_I2C3_Init();
+  MX_I3C2_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -172,7 +180,7 @@ int main(void)
 			// Test I2C1
 		  	TestI2C1();
 
-//		  	TestI2C3();
+		  	TestI2C3();
 
 		  	TestI3C1();
 	  }while(status != HAL_OK);
@@ -338,6 +346,61 @@ static void MX_I2C1_Init(void)
 }
 
 /**
+  * @brief I2C3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C3_Init(void)
+{
+
+  /* USER CODE BEGIN I2C3_Init 0 */
+
+  /* USER CODE END I2C3_Init 0 */
+
+  /* USER CODE BEGIN I2C3_Init 1 */
+
+  /* USER CODE END I2C3_Init 1 */
+  hi2c3.Instance = I2C3;
+  hi2c3.Init.Timing = 0x00F02780;
+  hi2c3.Init.OwnAddress1 = 0;
+  hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c3.Init.OwnAddress2 = 0;
+  hi2c3.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c3.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Analogue filter
+  */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c3, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Digital filter
+  */
+  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c3, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** I2C Fast mode Plus enable
+  */
+  if (HAL_I2CEx_ConfigFastModePlus(&hi2c3, I2C_FASTMODEPLUS_ENABLE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C3_Init 2 */
+
+  /* USER CODE END I2C3_Init 2 */
+
+}
+
+/**
   * @brief I3C1 Initialization Function
   * @param None
   * @retval None
@@ -402,6 +465,70 @@ static void MX_I3C1_Init(void)
 }
 
 /**
+  * @brief I3C2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I3C2_Init(void)
+{
+
+  /* USER CODE BEGIN I3C2_Init 0 */
+
+  /* USER CODE END I3C2_Init 0 */
+
+  I3C_FifoConfTypeDef sFifoConfig = {0};
+  I3C_CtrlConfTypeDef sCtrlConfig = {0};
+
+  /* USER CODE BEGIN I3C2_Init 1 */
+
+  /* USER CODE END I3C2_Init 1 */
+  hi3c2.Instance = I3C2;
+  hi3c2.Mode = HAL_I3C_MODE_CONTROLLER;
+  hi3c2.Init.CtrlBusCharacteristic.SDAHoldTime = HAL_I3C_SDA_HOLD_TIME_0_5;
+  hi3c2.Init.CtrlBusCharacteristic.WaitTime = HAL_I3C_OWN_ACTIVITY_STATE_0;
+  hi3c2.Init.CtrlBusCharacteristic.SCLPPLowDuration = 0x0e;
+  hi3c2.Init.CtrlBusCharacteristic.SCLI3CHighDuration = 0x00;
+  hi3c2.Init.CtrlBusCharacteristic.SCLODLowDuration = 0x17;
+  hi3c2.Init.CtrlBusCharacteristic.SCLI2CHighDuration = 0x0f;
+  hi3c2.Init.CtrlBusCharacteristic.BusFreeDuration = 0x0e;
+  hi3c2.Init.CtrlBusCharacteristic.BusIdleDuration = 0x0e;
+  if (HAL_I3C_Init(&hi3c2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure FIFO
+  */
+  sFifoConfig.RxFifoThreshold = HAL_I3C_RXFIFO_THRESHOLD_1_4;
+  sFifoConfig.TxFifoThreshold = HAL_I3C_TXFIFO_THRESHOLD_1_4;
+  sFifoConfig.ControlFifo = HAL_I3C_CONTROLFIFO_DISABLE;
+  sFifoConfig.StatusFifo = HAL_I3C_STATUSFIFO_DISABLE;
+  if (HAL_I3C_SetConfigFifo(&hi3c2, &sFifoConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure controller
+  */
+  sCtrlConfig.DynamicAddr = 0;
+  sCtrlConfig.StallTime = 0x00;
+  sCtrlConfig.HotJoinAllowed = DISABLE;
+  sCtrlConfig.ACKStallState = DISABLE;
+  sCtrlConfig.CCCStallState = DISABLE;
+  sCtrlConfig.TxStallState = DISABLE;
+  sCtrlConfig.RxStallState = DISABLE;
+  sCtrlConfig.HighKeeperSDA = DISABLE;
+  if (HAL_I3C_Ctrl_Config(&hi3c2, &sCtrlConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I3C2_Init 2 */
+
+  /* USER CODE END I3C2_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -427,6 +554,8 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -571,6 +700,38 @@ void TestI2C1()
 
 		if(status != HAL_OK){
 			break;
+		}
+
+	}while(0);
+
+	return;
+}
+
+void TestI2C3()
+{
+	int status;
+	do{
+
+	    uint8_t Addr_0x7f = 0x00;
+	    uint8_t count = 0;
+		while (HAL_I2C_Mem_Write(
+				&hi2c3, (uint16_t)I2C_ADDRESS_TOF,
+				0x7F,
+				1,
+				(uint8_t *)&Addr_0x7f,
+				1,
+				10000
+				) != HAL_OK
+				&&
+				count<3
+				) {
+			count++;
+			/* Error_Handler() function is called when Timeout error occurs.
+			   When Acknowledge failure occurs (Slave don't acknowledge it's address)
+			   Master restarts communication */
+			if (HAL_I2C_GetError(&hi2c3) != HAL_I2C_ERROR_AF) {
+				Error_Handler();
+			}
 		}
 
 	}while(0);
@@ -863,6 +1024,11 @@ void TestI3C1()
 	return;
 }
 
+
+void TestI3C2()
+{
+	return;
+}
 /* USER CODE END 4 */
 
 /**
