@@ -183,6 +183,9 @@ int main(void)
 		  	TestI2C3();
 
 		  	TestI3C1();
+
+			// Wait for 1000ms
+			HAL_Delay(1000);
 	  }while(status != HAL_OK);
 
     /* USER CODE BEGIN 3 */
