@@ -30,6 +30,12 @@
 #define SENSOR_ADDRESS_2 (0x57 << 0)
 //#define SENSOR_ADDRESS_1 (0x2B << 0)
 
+#define IR_MIPI_W (0x48)
+#define IR_MIPI_R (0x49)
+#define IR_MIPI_LED (0x63)
+#define IR_MIPI_EEPROM1 (0xA0)
+#define IR_MIPI_EEPROM2 (0xA1)
+
 /* PAF9615C2 Bank0 Registers */
 #define REG_PART_ID_L 0x00
 #define REG_PART_ID_H 0x01
@@ -184,6 +190,7 @@ int main(void)
 
 		  	TestI3C1();
 
+		  	TestI3C2();
 			// Wait for 1000ms
 			HAL_Delay(1000);
 	  }while(status != HAL_OK);
@@ -364,7 +371,7 @@ static void MX_I2C3_Init(void)
 
   /* USER CODE END I2C3_Init 1 */
   hi2c3.Instance = I2C3;
-  hi2c3.Init.Timing = 0x00F02780;
+  hi2c3.Init.Timing = 0x60300F32;
   hi2c3.Init.OwnAddress1 = 0;
   hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -387,13 +394,6 @@ static void MX_I2C3_Init(void)
   /** Configure Digital filter
   */
   if (HAL_I2CEx_ConfigDigitalFilter(&hi2c3, 0) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** I2C Fast mode Plus enable
-  */
-  if (HAL_I2CEx_ConfigFastModePlus(&hi2c3, I2C_FASTMODEPLUS_ENABLE) != HAL_OK)
   {
     Error_Handler();
   }
@@ -1028,10 +1028,74 @@ void TestI3C1()
 }
 
 
+/* Context buffer related to Frame context, contain different buffer value for a communication */
+I3C_XferTypeDef aI3C2_ContextBuffers[I3C_IDX_FRAME_NUM] __attribute__((section("noncacheable_buffer")));
+/* Buffer used by HAL to compute control data for the Private Communication */
+uint32_t aI3C2_ControlBuffer[0xF] __attribute__((section("noncacheable_buffer")));
+
+/* Buffer used for transmission */
+uint8_t aI3C2_TxBuffer[] = {0x7f, 0x00};
+
+#define I3C2_TXBUFFERSIZE                      2
+#define I3C2_RXBUFFERSIZE                      I3C2_TXBUFFERSIZE
+
+/* Buffer used for reception */
+uint8_t aI3C2_RxBuffer[I3C2_RXBUFFERSIZE] __attribute__((section("noncacheable_buffer")));
+
+
+/* Descriptor for private data transmit */
+I3C_PrivateTypeDef aI3C2_PrivateDescriptor[I3C_IDX_FRAME_NUM] = \
+{
+	{IR_MIPI_R, {aI3C2_TxBuffer, 2}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
+	{IR_MIPI_R, {aI3C2_TxBuffer, 1}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
+	{IR_MIPI_R, {NULL, 0}, {aI3C2_RxBuffer, 2}, HAL_I3C_DIRECTION_READ}
+};
+
 void TestI3C2()
 {
+	int status;
+
+	// Test I3C2
+	/*##- Prepare context buffers process ##################################*/
+	/* Prepare Transmit context buffer with the different parameters */
+	{
+
+		aI3C2_TxBuffer[0] = 0x7F;
+		aI3C2_TxBuffer[1] = 0x00;
+		aI3C2_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.pBuffer = aI3C2_ControlBuffer;
+		aI3C2_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size    = 1;
+		aI3C2_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.pBuffer   = aI3C2_TxBuffer;
+		aI3C2_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.Size      = 2;
+
+		/*##- Add context buffer transmit in Frame context #####################*/
+		if (HAL_I3C_AddDescToFrame(&hi3c2,
+								   NULL,
+								   &aI3C2_PrivateDescriptor[I3C_IDX_FRAME_1],
+								   &aI3C2_ContextBuffers[I3C_IDX_FRAME_1],
+								   aI3C2_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size,
+								   I2C_PRIVATE_WITHOUT_ARB_STOP)
+				!= HAL_OK)
+		{
+			/* Error_Handler() function is called when error occurs. */
+			Error_Handler();
+		}
+
+		status = HAL_I3C_Ctrl_Transmit_IT(&hi3c2, &aI3C2_ContextBuffers[I3C_IDX_FRAME_1]) ;
+		if (status!= HAL_OK)
+		{
+			/* Error_Handler() function is called when error occurs. */
+			Error_Handler();
+		}
+	}
+
+	while (HAL_I3C_GetState(&hi3c2) != HAL_I3C_STATE_READY)
+	{
+		status = 1;
+	}
+
 	return;
 }
+
 /* USER CODE END 4 */
 
 /**
