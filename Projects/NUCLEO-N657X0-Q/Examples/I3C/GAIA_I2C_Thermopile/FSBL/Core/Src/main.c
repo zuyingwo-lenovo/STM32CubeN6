@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #define I2C_ADDRESS_ACC1 (0x18 << 1)
 #define I2C_ADDRESS_TOF  (0x52 << 1)
+#define I2C_ADDRESS_AMP  (0x20 << 1)
 /* PAF9615C2 Sensor Address (7-bit 0x34 shifted for HAL) */
 //#define SENSOR_ADDRESS_1 (0x34 << 1)
 //#define SENSOR_ADDRESS_2 (0x57 << 1)
@@ -95,7 +96,9 @@ enum{
 /* Private variables ---------------------------------------------------------*/
 
 I2C_HandleTypeDef hi2c1;
+I2C_HandleTypeDef hi2c2;
 I2C_HandleTypeDef hi2c3;
+I2C_HandleTypeDef hi2c4;
 
 I3C_HandleTypeDef hi3c1;
 I3C_HandleTypeDef hi3c2;
@@ -121,10 +124,13 @@ static void MX_I3C1_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_I2C3_Init(void);
 static void MX_I3C2_Init(void);
+static void MX_I2C2_Init(void);
+static void MX_I2C4_Init(void);
 /* USER CODE BEGIN PFP */
 static uint16_t Buffercmp(uint8_t *pBuffer1, uint8_t *pBuffer2, uint16_t BufferLength);
 static void TestI2C1();
 static void TestI2C3();
+static void TestI2C4();
 static void TestI3C1();
 static void TestI3C2();
 
@@ -171,6 +177,8 @@ int main(void)
   MX_I2C1_Init();
   MX_I2C3_Init();
   MX_I3C2_Init();
+  MX_I2C2_Init();
+  MX_I2C4_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -184,13 +192,15 @@ int main(void)
 	  do{
 		  status=0;
 			// Test I2C1
-		  	TestI2C1();
+		  	TestI2C1();  // ACK
 
-		  	TestI2C3();
+		  	TestI2C3();  // NACK
 
-		  	TestI3C1();
+		  	TestI2C4();  // NACK
 
-		  	TestI3C2();
+		  	TestI3C1();  // ACK
+
+		  	TestI3C2();  // BUSY
 			// Wait for 1000ms
 			HAL_Delay(1000);
 	  }while(status != HAL_OK);
@@ -356,6 +366,54 @@ static void MX_I2C1_Init(void)
 }
 
 /**
+  * @brief I2C2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C2_Init(void)
+{
+
+  /* USER CODE BEGIN I2C2_Init 0 */
+
+  /* USER CODE END I2C2_Init 0 */
+
+  /* USER CODE BEGIN I2C2_Init 1 */
+
+  /* USER CODE END I2C2_Init 1 */
+  hi2c2.Instance = I2C2;
+  hi2c2.Init.Timing = 0x60300F32;
+  hi2c2.Init.OwnAddress1 = 0;
+  hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c2.Init.OwnAddress2 = 0;
+  hi2c2.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Analogue filter
+  */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c2, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Digital filter
+  */
+  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c2, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C2_Init 2 */
+
+  /* USER CODE END I2C2_Init 2 */
+
+}
+
+/**
   * @brief I2C3 Initialization Function
   * @param None
   * @retval None
@@ -400,6 +458,54 @@ static void MX_I2C3_Init(void)
   /* USER CODE BEGIN I2C3_Init 2 */
 
   /* USER CODE END I2C3_Init 2 */
+
+}
+
+/**
+  * @brief I2C4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C4_Init(void)
+{
+
+  /* USER CODE BEGIN I2C4_Init 0 */
+
+  /* USER CODE END I2C4_Init 0 */
+
+  /* USER CODE BEGIN I2C4_Init 1 */
+
+  /* USER CODE END I2C4_Init 1 */
+  hi2c4.Instance = I2C4;
+  hi2c4.Init.Timing = 0x60300F32;
+  hi2c4.Init.OwnAddress1 = 0;
+  hi2c4.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c4.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c4.Init.OwnAddress2 = 0;
+  hi2c4.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c4.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c4.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Analogue filter
+  */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c4, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Digital filter
+  */
+  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c4, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C4_Init 2 */
+
+  /* USER CODE END I2C4_Init 2 */
 
 }
 
@@ -555,6 +661,7 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
@@ -733,6 +840,37 @@ void TestI2C3()
 			   When Acknowledge failure occurs (Slave don't acknowledge it's address)
 			   Master restarts communication */
 			if (HAL_I2C_GetError(&hi2c3) != HAL_I2C_ERROR_AF) {
+				Error_Handler();
+			}
+		}
+
+	}while(0);
+
+	return;
+}
+
+void TestI2C4()
+{
+	do{
+
+	    uint8_t Addr_0x7f = 0x00;
+	    uint8_t count = 0;
+		while (HAL_I2C_Mem_Write(
+				&hi2c4, (uint16_t)I2C_ADDRESS_AMP,
+				0x7F,
+				1,
+				(uint8_t *)&Addr_0x7f,
+				1,
+				10000
+				) != HAL_OK
+				&&
+				count<3
+				) {
+			count++;
+			/* Error_Handler() function is called when Timeout error occurs.
+			   When Acknowledge failure occurs (Slave don't acknowledge it's address)
+			   Master restarts communication */
+			if (HAL_I2C_GetError(&hi2c4) != HAL_I2C_ERROR_AF) {
 				Error_Handler();
 			}
 		}
