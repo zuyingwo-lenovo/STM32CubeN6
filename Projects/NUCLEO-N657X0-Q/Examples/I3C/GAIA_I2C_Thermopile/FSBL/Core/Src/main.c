@@ -21,7 +21,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#define f (0x18 << 1)
 #define I2C_ADDRESS_ACC1 (0x18 << 1)
+#define I2C_ADDRESS_ACC2 (0x19 << 1)
+#define I2C_ADDRESS_IMU1 (0x6A << 1)
+#define I2C_ADDRESS_IMU2 (0x6A << 1)
+#define I2C_ADDRESS_ALS  (0x39 << 1)
+
 #define I2C_ADDRESS_TOF  (0x29 << 1)
 #define I2C_ADDRESS_AMP  (0x20 << 1)
 /* PAF9615C2 Sensor Address (7-bit 0x34 shifted for HAL) */
@@ -790,26 +796,155 @@ void TestI2C1()
 {
 	int status;
 	do{
+//#define I2C_ADDRESS_ACC1 (0x18 << 1)
+		{
+		    uint8_t Addr_0x7f = 0x00;
+			status = HAL_I2C_Mem_Write(
+					&hi2c1, (uint16_t)I2C_ADDRESS_ACC1,
+					0x7F,
+					1,
+					(uint8_t *)&Addr_0x7f,
+					1,
+					10000
+					);
 
-	    uint8_t Addr_0x7f = 0x00;
-		status = HAL_I2C_Mem_Write(
-				&hi2c1, (uint16_t)I2C_ADDRESS_ACC1,
-				0x7F,
-				1,
-				(uint8_t *)&Addr_0x7f,
-				1,
-				10000
-				);
+			/* Error_Handler() function is called when Timeout error occurs.
+			   When Acknowledge failure occurs (Slave don't acknowledge its address)
+			   Master restarts communication */
+			if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+				Error_Handler();
+			}
 
-		/* Error_Handler() function is called when Timeout error occurs.
-		   When Acknowledge failure occurs (Slave don't acknowledge its address)
-		   Master restarts communication */
-		if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
-			Error_Handler();
+			if(status != HAL_OK){
+				printf("Failure \n");
+			}
+
+			HAL_I2C_IsDeviceReady(
+					&hi2c1,  (uint16_t)I2C_ADDRESS_ACC1,
+					10,
+					10000);
 		}
 
-		if(status != HAL_OK){
-			break;
+
+//#define I2C_ADDRESS_ACC2 (0x19 << 1)
+
+		{
+
+		    uint8_t Addr_0x7f = 0x00;
+			status = HAL_I2C_Mem_Write(
+					&hi2c1, (uint16_t)I2C_ADDRESS_ACC2,
+					0x7F,
+					1,
+					(uint8_t *)&Addr_0x7f,
+					1,
+					10000
+					);
+
+			/* Error_Handler() function is called when Timeout error occurs.
+			   When Acknowledge failure occurs (Slave don't acknowledge its address)
+			   Master restarts communication */
+			if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+				Error_Handler();
+			}
+
+			if(status != HAL_OK){
+				printf("Failure \n");
+			}
+
+			HAL_I2C_IsDeviceReady(
+					&hi2c1,  (uint16_t)I2C_ADDRESS_ACC2,
+					10,
+					10000);
+		}
+//#define I2C_ADDRESS_IMU1 (0x6A << 1)
+
+		{
+
+		    uint8_t Addr_0x7f = 0x00;
+			status = HAL_I2C_Mem_Write(
+					&hi2c1, (uint16_t)I2C_ADDRESS_IMU1,
+					0x7F,
+					1,
+					(uint8_t *)&Addr_0x7f,
+					1,
+					10000
+					);
+
+			/* Error_Handler() function is called when Timeout error occurs.
+			   When Acknowledge failure occurs (Slave don't acknowledge its address)
+			   Master restarts communication */
+			if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+				Error_Handler();
+			}
+
+			if(status != HAL_OK){
+				printf("Failure \n");
+			}
+
+			HAL_I2C_IsDeviceReady(
+					&hi2c1,  (uint16_t)I2C_ADDRESS_IMU1,
+					10,
+					10000);
+		}
+//#define I2C_ADDRESS_IMU2 (0x6A << 1)
+
+		{
+
+		    uint8_t Addr_0x7f = 0x00;
+ 			status = HAL_I2C_Mem_Write(
+					&hi2c1, (uint16_t)I2C_ADDRESS_IMU2,
+					0x7F,
+					1,
+					(uint8_t *)&Addr_0x7f,
+					1,
+					10000
+					);
+
+			/* Error_Handler() function is called when Timeout error occurs.
+			   When Acknowledge failure occurs (Slave don't acknowledge its address)
+			   Master restarts communication */
+			if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+				Error_Handler();
+			}
+
+			if(status != HAL_OK){
+				printf("Failure \n");
+			}
+
+			HAL_I2C_IsDeviceReady(
+					&hi2c1,  (uint16_t)I2C_ADDRESS_IMU2,
+					10,
+					10000);
+		}
+//#define I2C_ADDRESS_ALS  (0x39 << 1)
+
+		{
+
+		    uint8_t Addr_0x7f = 0x00;
+			status = HAL_I2C_Mem_Write(
+					&hi2c1, (uint16_t)I2C_ADDRESS_ALS,
+					0x7F,
+					1,
+					(uint8_t *)&Addr_0x7f,
+					1,
+					10000
+					);
+
+			/* Error_Handler() function is called when Timeout error occurs.
+			   When Acknowledge failure occurs (Slave don't acknowledge its address)
+			   Master restarts communication */
+			if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF && status != HAL_OK) {
+				Error_Handler();
+			}
+
+			if(status != HAL_OK){
+				printf("Failure \n");
+			}
+
+			HAL_I2C_IsDeviceReady(
+					&hi2c1,  (uint16_t)I2C_ADDRESS_ALS,
+					10,
+					10000);
 		}
 
 	}while(0);
