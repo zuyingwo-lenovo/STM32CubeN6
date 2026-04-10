@@ -69,8 +69,8 @@
 
 #define TOF_RESET_Pin GPIO_PIN_5
 #define TOF_RESET_Port GPIOP
-#define TOF_INIT_Pin GPIO_PIN_6
-#define TOF_INIT_Port GPIOP
+#define TOF_INT_Pin GPIO_PIN_6
+#define TOF_INT_Port GPIOP
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -188,6 +188,8 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
 	  int status;
 	  do{
 		  status=0;
@@ -204,8 +206,6 @@ int main(void)
 			// Wait for 1000ms
 			HAL_Delay(1000);
 	  }while(status != HAL_OK);
-
-    /* USER CODE BEGIN 3 */
   }
   return 0;
   /* USER CODE END 3 */
@@ -429,7 +429,7 @@ static void MX_I2C3_Init(void)
 
   /* USER CODE END I2C3_Init 1 */
   hi2c3.Instance = I2C3;
-  hi2c3.Init.Timing = 0x50901134;
+  hi2c3.Init.Timing = 0x10901339;
   hi2c3.Init.OwnAddress1 = 0;
   hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -452,6 +452,13 @@ static void MX_I2C3_Init(void)
   /** Configure Digital filter
   */
   if (HAL_I2CEx_ConfigDigitalFilter(&hi2c3, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** I2C Fast mode Plus enable
+  */
+  if (HAL_I2CEx_ConfigFastModePlus(&hi2c3, I2C_FASTMODEPLUS_ENABLE) != HAL_OK)
   {
     Error_Handler();
   }
@@ -716,9 +723,9 @@ static void MX_GPIO_Init(void)
   TOF_RESET_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(TOF_RESET_Port, &TOF_RESET_GPIO_InitStruct);
 
-  HAL_GPIO_WritePin(TOF_INIT_Port, TOF_INIT_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(TOF_INT_Port, TOF_INT_Pin, GPIO_PIN_SET);
   /*Configure GPIO pin : TOF_INIT */
-  TOF_INIT_GPIO_InitStruct.Pin = TOF_INIT_Pin;
+  TOF_INIT_GPIO_InitStruct.Pin = TOF_INT_Pin;
   TOF_INIT_GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   TOF_INIT_GPIO_InitStruct.Pull = GPIO_PULLUP;
   TOF_INIT_GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
@@ -819,6 +826,9 @@ void TestI2C1()
 
 void TestI2C3()
 {
+
+	HAL_GPIO_TogglePin(TOF_RESET_Port, TOF_RESET_Pin);
+
 	do{
 
 	    uint8_t Addr_0x7f = 0x00;
@@ -832,7 +842,7 @@ void TestI2C3()
 				10000
 				) != HAL_OK
 				&&
-				count<3
+				count<10
 				) {
 			count++;
 			/* Error_Handler() function is called when Timeout error occurs.
