@@ -1189,12 +1189,12 @@ uint8_t aI3C1_RxBuffer[I3C1_RXBUFFERSIZE] __attribute__((section("noncacheable_b
 /* Descriptor for private data transmit */
 I3C_PrivateTypeDef aPrivateDescriptor[I3C_IDX_FRAME_NUM] = \
 {
-	{SENSOR_ADDRESS_1, {aI3C1_TxBuffer, 2}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
-	{SENSOR_ADDRESS_1, {aI3C1_TxBuffer, 1}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
-	{SENSOR_ADDRESS_1, {NULL, 0}, {aI3C1_RxBuffer, 2}, HAL_I3C_DIRECTION_READ}
+	{SENSOR_ADDRESS_2, {aI3C1_TxBuffer, 2}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
+	{SENSOR_ADDRESS_2, {aI3C1_TxBuffer, 1}, {NULL, 0}, HAL_I3C_DIRECTION_WRITE},
+	{SENSOR_ADDRESS_2, {NULL, 0}, {aI3C1_RxBuffer, 2}, HAL_I3C_DIRECTION_READ}
 };
 
-static HAL_StatusTypeDef I3C1_WriteReg(uint8_t reg, uint8_t val)
+static HAL_StatusTypeDef I3C1_WriteReg(uint8_t dev_addr, uint8_t reg, uint8_t val)
 {
 	aI3C1_TxBuffer[0] = reg;
 	aI3C1_TxBuffer[1] = val;
@@ -1204,6 +1204,7 @@ static HAL_StatusTypeDef I3C1_WriteReg(uint8_t reg, uint8_t val)
 	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.pBuffer   = aI3C1_TxBuffer;
 	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.Size      = 2;
 
+	aPrivateDescriptor[I3C_IDX_FRAME_1].TargetAddr    = dev_addr;
 	aPrivateDescriptor[I3C_IDX_FRAME_1].TxBuf.pBuffer = aI3C1_TxBuffer;
 	aPrivateDescriptor[I3C_IDX_FRAME_1].TxBuf.Size    = 2;
 	aPrivateDescriptor[I3C_IDX_FRAME_1].Direction     = HAL_I3C_DIRECTION_WRITE;
@@ -1230,7 +1231,7 @@ static HAL_StatusTypeDef I3C1_WriteReg(uint8_t reg, uint8_t val)
 	return HAL_OK;
 }
 
-static HAL_StatusTypeDef I3C1_ReadReg(uint8_t reg, uint8_t *pBuf, uint16_t size)
+static HAL_StatusTypeDef I3C1_ReadReg(uint8_t dev_addr, uint8_t reg, uint8_t *pBuf, uint16_t size)
 {
 	aI3C1_TxBuffer[0] = reg;
 
@@ -1239,6 +1240,7 @@ static HAL_StatusTypeDef I3C1_ReadReg(uint8_t reg, uint8_t *pBuf, uint16_t size)
 	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].TxBuf.pBuffer   = aI3C1_TxBuffer;
 	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].TxBuf.Size      = 1;
 
+	aPrivateDescriptor[I3C_IDX_FRAME_2].TargetAddr    = dev_addr;
 	aPrivateDescriptor[I3C_IDX_FRAME_2].TxBuf.pBuffer = aI3C1_TxBuffer;
 	aPrivateDescriptor[I3C_IDX_FRAME_2].TxBuf.Size    = 1;
 	aPrivateDescriptor[I3C_IDX_FRAME_2].Direction     = HAL_I3C_DIRECTION_WRITE;
@@ -1267,6 +1269,7 @@ static HAL_StatusTypeDef I3C1_ReadReg(uint8_t reg, uint8_t *pBuf, uint16_t size)
 	aI3C1_ContextBuffers[I3C_IDX_FRAME_3].RxBuf.pBuffer   = pBuf;
 	aI3C1_ContextBuffers[I3C_IDX_FRAME_3].RxBuf.Size      = size;
 
+	aPrivateDescriptor[I3C_IDX_FRAME_3].TargetAddr    = dev_addr;
 	aPrivateDescriptor[I3C_IDX_FRAME_3].RxBuf.pBuffer = pBuf;
 	aPrivateDescriptor[I3C_IDX_FRAME_3].RxBuf.Size    = size;
 	aPrivateDescriptor[I3C_IDX_FRAME_3].Direction     = HAL_I3C_DIRECTION_READ;
@@ -1293,33 +1296,29 @@ static HAL_StatusTypeDef I3C1_ReadReg(uint8_t reg, uint8_t *pBuf, uint16_t size)
 	return HAL_OK;
 }
 
-void TestI3C1()
+static void Init_Thermopile(uint8_t dev_addr)
 {
-	HAL_GPIO_TogglePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin);
-	HAL_GPIO_TogglePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin);
-	HAL_Delay(120);
-
 	// Read Part ID loop (retry up to 3 times)
 	uint8_t part_id[2] = {0};
 	int part_id_ok = 0;
 	for (int retry = 0; retry < 3; retry++)
 	{
 		// Switch to Bank 0
-		if (I3C1_WriteReg(REG_CMD_BANK_SEL, VAL_BANK0) != HAL_OK)
+		if (I3C1_WriteReg(dev_addr, REG_CMD_BANK_SEL, VAL_BANK0) != HAL_OK)
 		{
 			HAL_Delay(120);
 			continue;
 		}
 
 		// Read Register 0x00 and 0x01
-		if (I3C1_ReadReg(REG_PART_ID_L, part_id, 2) != HAL_OK)
+		if (I3C1_ReadReg(dev_addr, REG_PART_ID_L, part_id, 2) != HAL_OK)
 		{
 			HAL_Delay(120);
 			continue;
 		}
 
 		uint16_t part_id_val = part_id[0] | (part_id[1] << 8);
-		printf("TestI3C1> Try %d: Read Part ID = 0x%04X\r\n", retry + 1, part_id_val);
+		printf("TestI3C1 [0x%02X]> Try %d: Read Part ID = 0x%04X\r\n", dev_addr, retry + 1, part_id_val);
 
 		if (part_id_val == VAL_PART_ID)
 		{
@@ -1331,30 +1330,29 @@ void TestI3C1()
 
 	if (!part_id_ok)
 	{
-		printf("TestI3C1> Failed to read correct Part ID (0x0271) after 3 retries\r\n");
+		printf("TestI3C1 [0x%02X]> Failed to read correct Part ID (0x0271) after 3 retries\r\n", dev_addr);
 		Error_Handler();
 	}
 
-	printf("TestI3C1> Part ID matched successfully.\r\n");
+	printf("TestI3C1 [0x%02X]> Part ID matched successfully.\r\n", dev_addr);
 
 	// Check ID: I2C ID = 0x34 or 0x57
-	uint8_t dev_addr = aPrivateDescriptor[I3C_IDX_FRAME_1].TargetAddr;
 	if (dev_addr != 0x34 && dev_addr != 0x57)
 	{
-		printf("TestI3C1> Invalid Target Address (0x%02X). Expected 0x34 or 0x57.\r\n", dev_addr);
+		printf("TestI3C1 [0x%02X]> Invalid Target Address. Expected 0x34 or 0x57.\r\n", dev_addr);
 		Error_Handler();
 	}
-	printf("TestI3C1> Target ID check passed (0x%02X).\r\n", dev_addr);
+	printf("TestI3C1 [0x%02X]> Target ID check passed.\r\n", dev_addr);
 
 	// Switch to Bank0
-	if (I3C1_WriteReg(REG_CMD_BANK_SEL, VAL_BANK0) != HAL_OK)
+	if (I3C1_WriteReg(dev_addr, REG_CMD_BANK_SEL, VAL_BANK0) != HAL_OK)
 	{
 		Error_Handler();
 	}
 
 	// Cold Reset
-	printf("TestI3C1> Performing Cold Reset...\r\n");
-	if (I3C1_WriteReg(REG_SW_RESET, VAL_COLD_RESET) != HAL_OK)
+	printf("TestI3C1 [0x%02X]> Performing Cold Reset...\r\n", dev_addr);
+	if (I3C1_WriteReg(dev_addr, REG_SW_RESET, VAL_COLD_RESET) != HAL_OK)
 	{
 		Error_Handler();
 	}
@@ -1367,9 +1365,9 @@ void TestI3C1()
 	int otp_ok = 0;
 	for (int retry = 0; retry < 10; retry++)
 	{
-		if (I3C1_ReadReg(REG_STATUS, &status_flag, 1) == HAL_OK)
+		if (I3C1_ReadReg(dev_addr, REG_STATUS, &status_flag, 1) == HAL_OK)
 		{
-			printf("TestI3C1> Status Flag (0x05) = 0x%02X\r\n", status_flag);
+			printf("TestI3C1 [0x%02X]> Status Flag (0x05) = 0x%02X\r\n", dev_addr, status_flag);
 			if (status_flag & STATUS_OTP_LOAD_DONE)
 			{
 				otp_ok = 1;
@@ -1381,78 +1379,106 @@ void TestI3C1()
 
 	if (!otp_ok)
 	{
-		printf("TestI3C1> OTP Load Done flag not set after retries\r\n");
+		printf("TestI3C1 [0x%02X]> OTP Load Done flag not set after retries\r\n", dev_addr);
 		Error_Handler();
 	}
 
-	printf("TestI3C1> Initialization Successful!\r\n");
-
 	// --- Configure Normal Mode and Hysteresis ---
 	// 1. Switch to Bank 0
-	if (I3C1_WriteReg(REG_CMD_BANK_SEL, VAL_BANK0) != HAL_OK)
+	if (I3C1_WriteReg(dev_addr, REG_CMD_BANK_SEL, VAL_BANK0) != HAL_OK)
 	{
 		Error_Handler();
 	}
 
 	// 2. Set Alert_Mode = 0 and One-Shot = 0 to configure Normal Mode
-	printf("TestI3C1> Configuring Normal Mode...\r\n");
-	if (I3C1_WriteReg(REG_ALERT_MODE, 0x00) != HAL_OK)
+	printf("TestI3C1 [0x%02X]> Configuring Normal Mode...\r\n", dev_addr);
+	if (I3C1_WriteReg(dev_addr, REG_ALERT_MODE, 0x00) != HAL_OK)
 	{
 		Error_Handler();
 	}
-	if (I3C1_WriteReg(REG_ONE_SHOT, 0x00) != HAL_OK)
+	if (I3C1_WriteReg(dev_addr, REG_ONE_SHOT, 0x00) != HAL_OK)
 	{
 		Error_Handler();
 	}
 
 	// 3. Configure Hysteresis values (Ta Hysteresis = 5.0 C (10 LSB), To Hysteresis = 2.0 C (4 LSB))
-	printf("TestI3C1> Setting Hysteresis values...\r\n");
-	if (I3C1_WriteReg(REG_TA_HYSTERESIS, 10) != HAL_OK)
+	printf("TestI3C1 [0x%02X]> Setting Hysteresis values...\r\n", dev_addr);
+	if (I3C1_WriteReg(dev_addr, REG_TA_HYSTERESIS, 10) != HAL_OK)
 	{
 		Error_Handler();
 	}
-	if (I3C1_WriteReg(REG_TO_HYSTERESIS, 4) != HAL_OK)
+	if (I3C1_WriteReg(dev_addr, REG_TO_HYSTERESIS, 4) != HAL_OK)
 	{
 		Error_Handler();
 	}
 
 	// 4. Enable Sensor (transition from Suspend to Operation)
-	printf("TestI3C1> Enabling sensor (output enable)...\r\n");
-	if (I3C1_WriteReg(REG_OUTPUT_ENABLE, 0x01) != HAL_OK)
+	printf("TestI3C1 [0x%02X]> Enabling sensor (output enable)...\r\n", dev_addr);
+	if (I3C1_WriteReg(dev_addr, REG_OUTPUT_ENABLE, 0x01) != HAL_OK)
 	{
 		Error_Handler();
 	}
 
-	printf("TestI3C1> Entering real-time reading loop...\r\n");
+	printf("TestI3C1 [0x%02X]> Initialization Successful!\r\n", dev_addr);
+}
 
-	// 5. Real-time acquisition loop (100 ms interval)
+void TestI3C1()
+{
+	// Toggle PD Pin for Sensor 1 (0x34)
+	HAL_GPIO_TogglePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin);
+	HAL_GPIO_TogglePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin);
+
+	// Toggle PD Pin for Sensor 2 (0x57)
+	HAL_GPIO_TogglePin(THRMPL2_PD_GPIO_Port, THRMPL2_PD_Pin);
+	HAL_GPIO_TogglePin(THRMPL2_PD_GPIO_Port, THRMPL2_PD_Pin);
+
+	HAL_Delay(120);
+
+	// Initialize Sensor 1 (0x34)
+	Init_Thermopile(SENSOR_ADDRESS_1);
+
+	// Initialize Sensor 2 (0x57)
+	Init_Thermopile(SENSOR_ADDRESS_2);
+
+	printf("TestI3C1> Both sensors initialized successfully. Entering real-time reading loop...\r\n");
+
+	// Real-time acquisition loop (100 ms interval)
 	while (1)
 	{
-		// Read temperature registers 0x06 to 0x0D (8 bytes)
-		if (I3C1_ReadReg(REG_TEMP_DATA_START, aI3C1_RxBuffer, 8) == HAL_OK)
+		// --- Read Sensor 1 (0x34) ---
+		float ta_1 = 0.0f, to_1 = 0.0f;
+		int read1_ok = 0;
+		if (I3C1_ReadReg(SENSOR_ADDRESS_1, REG_TEMP_DATA_START, aI3C1_RxBuffer, 8) == HAL_OK)
 		{
-			// CAL_Ta_Data is at 0x0A, 0x0B (offset 4, 5)
 			int16_t ta_raw = (int16_t)(aI3C1_RxBuffer[4] | (aI3C1_RxBuffer[5] << 8));
-			float ta_val = ta_raw * 0.03125f;
-
-			// CAL_To_Data is at 0x0C, 0x0D (offset 6, 7)
+			ta_1 = ta_raw * 0.03125f;
 			int16_t to_raw = (int16_t)(aI3C1_RxBuffer[6] | (aI3C1_RxBuffer[7] << 8));
-			float to_val = to_raw * 0.03125f;
+			to_1 = to_raw * 0.03125f;
+			read1_ok = 1;
+		}
 
-			// Read Hysteresis values (0x76, 0x77) to verify
-			float ta_hyst = 0.0f;
-			float to_hyst = 0.0f;
-			if (I3C1_ReadReg(REG_TA_HYSTERESIS, aI3C1_RxBuffer, 2) == HAL_OK)
-			{
-				ta_hyst = aI3C1_RxBuffer[0] * 0.5f;
-				to_hyst = aI3C1_RxBuffer[1] * 0.5f;
-			}
+		// --- Read Sensor 2 (0x57) ---
+		float ta_2 = 0.0f, to_2 = 0.0f;
+		int read2_ok = 0;
+		if (I3C1_ReadReg(SENSOR_ADDRESS_2, REG_TEMP_DATA_START, aI3C1_RxBuffer, 8) == HAL_OK)
+		{
+			int16_t ta_raw = (int16_t)(aI3C1_RxBuffer[4] | (aI3C1_RxBuffer[5] << 8));
+			ta_2 = ta_raw * 0.03125f;
+			int16_t to_raw = (int16_t)(aI3C1_RxBuffer[6] | (aI3C1_RxBuffer[7] << 8));
+			to_2 = to_raw * 0.03125f;
+			read2_ok = 1;
+		}
 
-			printf("Realtime> Ta = %.3f C, To = %.3f C | Hyst: Ta = %.1f C, To = %.1f C\r\n", ta_val, to_val, ta_hyst, to_hyst);
+		// --- Print Results ---
+		if (read1_ok && read2_ok)
+		{
+			printf("Realtime> Sensor1 [0x34]: Ta = %.3f C, To = %.3f C | Sensor2 [0x57]: Ta = %.3f C, To = %.3f C\r\n",
+				   ta_1, to_1, ta_2, to_2);
 		}
 		else
 		{
-			printf("Realtime> Read failed.\r\n");
+			printf("Realtime> Read error (S1:%s S2:%s)\r\n",
+				   read1_ok ? "OK" : "FAIL", read2_ok ? "OK" : "FAIL");
 		}
 
 		HAL_Delay(100);
