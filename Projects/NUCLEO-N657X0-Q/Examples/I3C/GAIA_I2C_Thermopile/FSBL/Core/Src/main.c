@@ -21,7 +21,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#define f (0x18 << 1)
 #define I2C_ADDRESS_ACC1 (0x18 << 1)
 #define I2C_ADDRESS_ACC2 (0x19 << 1)
 #define I2C_ADDRESS_IMU1 (0x6A << 1)
@@ -46,7 +45,13 @@
 /* PAF9615C2 Bank0 Registers */
 #define REG_PART_ID_L 0x00
 #define REG_PART_ID_H 0x01
+#define REG_ALERT_MODE 0x03
+#define REG_OUTPUT_ENABLE 0x04
 #define REG_STATUS 0x05
+#define REG_TEMP_DATA_START 0x06
+#define REG_ONE_SHOT 0x26
+#define REG_TA_HYSTERESIS 0x76
+#define REG_TO_HYSTERESIS 0x77
 #define REG_CMD_BANK_SEL 0x7F
 #define REG_SW_RESET 0x7D
 
@@ -1175,7 +1180,7 @@ uint32_t aI3C1_ControlBuffer[0xF] __attribute__((section("noncacheable_buffer"))
 uint8_t aI3C1_TxBuffer[] = {0x7f, 0x00};
 
 #define I3C1_TXBUFFERSIZE                      2
-#define I3C1_RXBUFFERSIZE                      I3C1_TXBUFFERSIZE
+#define I3C1_RXBUFFERSIZE                      16
 
 /* Buffer used for reception */
 uint8_t aI3C1_RxBuffer[I3C1_RXBUFFERSIZE] __attribute__((section("noncacheable_buffer")));
@@ -1381,6 +1386,77 @@ void TestI3C1()
 	}
 
 	printf("TestI3C1> Initialization Successful!\r\n");
+
+	// --- Configure Normal Mode and Hysteresis ---
+	// 1. Switch to Bank 0
+	if (I3C1_WriteReg(REG_CMD_BANK_SEL, VAL_BANK0) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	// 2. Set Alert_Mode = 0 and One-Shot = 0 to configure Normal Mode
+	printf("TestI3C1> Configuring Normal Mode...\r\n");
+	if (I3C1_WriteReg(REG_ALERT_MODE, 0x00) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	if (I3C1_WriteReg(REG_ONE_SHOT, 0x00) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	// 3. Configure Hysteresis values (Ta Hysteresis = 5.0 C (10 LSB), To Hysteresis = 2.0 C (4 LSB))
+	printf("TestI3C1> Setting Hysteresis values...\r\n");
+	if (I3C1_WriteReg(REG_TA_HYSTERESIS, 10) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	if (I3C1_WriteReg(REG_TO_HYSTERESIS, 4) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	// 4. Enable Sensor (transition from Suspend to Operation)
+	printf("TestI3C1> Enabling sensor (output enable)...\r\n");
+	if (I3C1_WriteReg(REG_OUTPUT_ENABLE, 0x01) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	printf("TestI3C1> Entering real-time reading loop...\r\n");
+
+	// 5. Real-time acquisition loop (100 ms interval)
+	while (1)
+	{
+		// Read temperature registers 0x06 to 0x0D (8 bytes)
+		if (I3C1_ReadReg(REG_TEMP_DATA_START, aI3C1_RxBuffer, 8) == HAL_OK)
+		{
+			// CAL_Ta_Data is at 0x0A, 0x0B (offset 4, 5)
+			int16_t ta_raw = (int16_t)(aI3C1_RxBuffer[4] | (aI3C1_RxBuffer[5] << 8));
+			float ta_val = ta_raw * 0.03125f;
+
+			// CAL_To_Data is at 0x0C, 0x0D (offset 6, 7)
+			int16_t to_raw = (int16_t)(aI3C1_RxBuffer[6] | (aI3C1_RxBuffer[7] << 8));
+			float to_val = to_raw * 0.03125f;
+
+			// Read Hysteresis values (0x76, 0x77) to verify
+			float ta_hyst = 0.0f;
+			float to_hyst = 0.0f;
+			if (I3C1_ReadReg(REG_TA_HYSTERESIS, aI3C1_RxBuffer, 2) == HAL_OK)
+			{
+				ta_hyst = aI3C1_RxBuffer[0] * 0.5f;
+				to_hyst = aI3C1_RxBuffer[1] * 0.5f;
+			}
+
+			printf("Realtime> Ta = %.3f C, To = %.3f C | Hyst: Ta = %.1f C, To = %.1f C\r\n", ta_val, to_val, ta_hyst, to_hyst);
+		}
+		else
+		{
+			printf("Realtime> Read failed.\r\n");
+		}
+
+		HAL_Delay(100);
+	}
 }
 // Thermopile End
 
