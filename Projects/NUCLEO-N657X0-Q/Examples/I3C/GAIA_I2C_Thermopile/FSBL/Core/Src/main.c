@@ -200,15 +200,15 @@ int main(void)
 	  do{
 		  status=0;
 			// Test I2C1
-		  	TestI2C1();  // ACK
-
-		  	TestI2C3();  // NACK
-
-		  	TestI2C4();  // NACK
+//		  	TestI2C1();  // ACK
+//
+//		  	TestI2C3();  // NACK
+//
+//		  	TestI2C4();  // NACK
 
 		  	TestI3C1();  // ACK
 
-		  	TestI3C2();  // BUSY
+//		  	TestI3C2();  // BUSY
 			// Wait for 1000ms
 			HAL_Delay(1000);
 	  }while(status != HAL_OK);
@@ -1165,7 +1165,7 @@ void Test_Themopile_on_I2C1()
 	return;
 }
 
-
+// Thermopile Start
 /* Context buffer related to Frame context, contain different buffer value for a communication */
 I3C_XferTypeDef aI3C1_ContextBuffers[I3C_IDX_FRAME_NUM] __attribute__((section("noncacheable_buffer")));
 /* Buffer used by HAL to compute control data for the Private Communication */
@@ -1189,119 +1189,200 @@ I3C_PrivateTypeDef aPrivateDescriptor[I3C_IDX_FRAME_NUM] = \
 	{SENSOR_ADDRESS_1, {NULL, 0}, {aI3C1_RxBuffer, 2}, HAL_I3C_DIRECTION_READ}
 };
 
-void TestI3C1()
+static HAL_StatusTypeDef I3C1_WriteReg(uint8_t reg, uint8_t val)
 {
-	int status;
-	HAL_GPIO_TogglePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin);
-	HAL_GPIO_TogglePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin);
-	// Test I3C1
-	/*##- Prepare context buffers process ##################################*/
-	/* Prepare Transmit context buffer with the different parameters */
+	aI3C1_TxBuffer[0] = reg;
+	aI3C1_TxBuffer[1] = val;
+
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size    = 1;
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.pBuffer   = aI3C1_TxBuffer;
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.Size      = 2;
+
+	aPrivateDescriptor[I3C_IDX_FRAME_1].TxBuf.pBuffer = aI3C1_TxBuffer;
+	aPrivateDescriptor[I3C_IDX_FRAME_1].TxBuf.Size    = 2;
+	aPrivateDescriptor[I3C_IDX_FRAME_1].Direction     = HAL_I3C_DIRECTION_WRITE;
+
+	if (HAL_I3C_AddDescToFrame(&hi3c1,
+							   NULL,
+							   &aPrivateDescriptor[I3C_IDX_FRAME_1],
+							   &aI3C1_ContextBuffers[I3C_IDX_FRAME_1],
+							   1,
+							   I2C_PRIVATE_WITHOUT_ARB_STOP) != HAL_OK)
 	{
+		return HAL_ERROR;
+	}
 
-		aI3C1_TxBuffer[0] = 0x7F;
-		aI3C1_TxBuffer[1] = 0x00;
-		aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
-		aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size    = 1;
-		aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.pBuffer   = aI3C1_TxBuffer;
-		aI3C1_ContextBuffers[I3C_IDX_FRAME_1].TxBuf.Size      = 2;
-
-		/*##- Add context buffer transmit in Frame context #####################*/
-		if (HAL_I3C_AddDescToFrame(&hi3c1,
-								   NULL,
-								   &aPrivateDescriptor[I3C_IDX_FRAME_1],
-								   &aI3C1_ContextBuffers[I3C_IDX_FRAME_1],
-								   aI3C1_ContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size,
-								   I2C_PRIVATE_WITHOUT_ARB_STOP)
-				!= HAL_OK)
-		{
-			/* Error_Handler() function is called when error occurs. */
-			Error_Handler();
-		}
-
-		status = HAL_I3C_Ctrl_Transmit_IT(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_1]) ;
-		if (status!= HAL_OK)
-		{
-			/* Error_Handler() function is called when error occurs. */
-			Error_Handler();
-		}
+	if (HAL_I3C_Ctrl_Transmit_IT(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_1]) != HAL_OK)
+	{
+		return HAL_ERROR;
 	}
 
 	while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)
 	{
-		status = 1;
 	}
 
-	{
-
-		aI3C1_TxBuffer[0] = 0x00;
-		aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
-		aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size    = 1;
-		aI3C1_ContextBuffers[I3C_IDX_FRAME_2].TxBuf.pBuffer   = aI3C1_TxBuffer;
-		aI3C1_ContextBuffers[I3C_IDX_FRAME_2].TxBuf.Size      = 1;
-
-		/*##- Add context buffer transmit in Frame context #####################*/
-		if (HAL_I3C_AddDescToFrame(&hi3c1,
-								   NULL,
-								   &aPrivateDescriptor[I3C_IDX_FRAME_2],
-								   &aI3C1_ContextBuffers[I3C_IDX_FRAME_2],
-								   aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size,
-								   I2C_PRIVATE_WITHOUT_ARB_RESTART)
-				!= HAL_OK)
-		{
-			/* Error_Handler() function is called when error occurs. */
-			Error_Handler();
-		}
-
-		status = HAL_I3C_Ctrl_Transmit_IT(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_2]) ;
-		if (status!= HAL_OK)
-		{
-			/* Error_Handler() function is called when error occurs. */
-			Error_Handler();
-		}
-	}
-
-	while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)
-	{
-		status = 1;
-	}
-
-	{
-		/* Prepare Receive context buffer with the different parameters */
-		aI3C1_ContextBuffers[I3C_IDX_FRAME_3].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
-		aI3C1_ContextBuffers[I3C_IDX_FRAME_3].CtrlBuf.Size    = 1;
-		aI3C1_ContextBuffers[I3C_IDX_FRAME_3].RxBuf.pBuffer   = aI3C1_RxBuffer;
-		aI3C1_ContextBuffers[I3C_IDX_FRAME_3].RxBuf.Size      = 2;
-
-		if (HAL_I3C_AddDescToFrame(&hi3c1,
-								   NULL,
-								   &aPrivateDescriptor[I3C_IDX_FRAME_3],
-								   &aI3C1_ContextBuffers[I3C_IDX_FRAME_3],
-								   aI3C1_ContextBuffers[I3C_IDX_FRAME_3].CtrlBuf.Size,
-								   I2C_PRIVATE_WITHOUT_ARB_STOP)
-				!= HAL_OK)
-		{
-			/* Error_Handler() function is called when error occurs. */
-			Error_Handler();
-		}
-
-		status = HAL_I3C_Ctrl_Receive_IT(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_3]) ;
-		if (status!= HAL_OK)
-		{
-			/* Error_Handler() function is called when error occurs. */
-			Error_Handler();
-		}
-	}
-
-	while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)
-	{
-		status = 1;
-	}
-
-
-	return;
+	return HAL_OK;
 }
 
+static HAL_StatusTypeDef I3C1_ReadReg(uint8_t reg, uint8_t *pBuf, uint16_t size)
+{
+	aI3C1_TxBuffer[0] = reg;
+
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].CtrlBuf.Size    = 1;
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].TxBuf.pBuffer   = aI3C1_TxBuffer;
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_2].TxBuf.Size      = 1;
+
+	aPrivateDescriptor[I3C_IDX_FRAME_2].TxBuf.pBuffer = aI3C1_TxBuffer;
+	aPrivateDescriptor[I3C_IDX_FRAME_2].TxBuf.Size    = 1;
+	aPrivateDescriptor[I3C_IDX_FRAME_2].Direction     = HAL_I3C_DIRECTION_WRITE;
+
+	if (HAL_I3C_AddDescToFrame(&hi3c1,
+							   NULL,
+							   &aPrivateDescriptor[I3C_IDX_FRAME_2],
+							   &aI3C1_ContextBuffers[I3C_IDX_FRAME_2],
+							   1,
+							   I2C_PRIVATE_WITHOUT_ARB_RESTART) != HAL_OK)
+	{
+		return HAL_ERROR;
+	}
+
+	if (HAL_I3C_Ctrl_Transmit_IT(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_2]) != HAL_OK)
+	{
+		return HAL_ERROR;
+	}
+
+	while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)
+	{
+	}
+
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_3].CtrlBuf.pBuffer = aI3C1_ControlBuffer;
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_3].CtrlBuf.Size    = 1;
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_3].RxBuf.pBuffer   = pBuf;
+	aI3C1_ContextBuffers[I3C_IDX_FRAME_3].RxBuf.Size      = size;
+
+	aPrivateDescriptor[I3C_IDX_FRAME_3].RxBuf.pBuffer = pBuf;
+	aPrivateDescriptor[I3C_IDX_FRAME_3].RxBuf.Size    = size;
+	aPrivateDescriptor[I3C_IDX_FRAME_3].Direction     = HAL_I3C_DIRECTION_READ;
+
+	if (HAL_I3C_AddDescToFrame(&hi3c1,
+							   NULL,
+							   &aPrivateDescriptor[I3C_IDX_FRAME_3],
+							   &aI3C1_ContextBuffers[I3C_IDX_FRAME_3],
+							   1,
+							   I2C_PRIVATE_WITHOUT_ARB_STOP) != HAL_OK)
+	{
+		return HAL_ERROR;
+	}
+
+	if (HAL_I3C_Ctrl_Receive_IT(&hi3c1, &aI3C1_ContextBuffers[I3C_IDX_FRAME_3]) != HAL_OK)
+	{
+		return HAL_ERROR;
+	}
+
+	while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)
+	{
+	}
+
+	return HAL_OK;
+}
+
+void TestI3C1()
+{
+	HAL_GPIO_TogglePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin);
+	HAL_GPIO_TogglePin(THRMPL1_PD_GPIO_Port, THRMPL1_PD_Pin);
+	HAL_Delay(120);
+
+	// Read Part ID loop (retry up to 3 times)
+	uint8_t part_id[2] = {0};
+	int part_id_ok = 0;
+	for (int retry = 0; retry < 3; retry++)
+	{
+		// Switch to Bank 0
+		if (I3C1_WriteReg(REG_CMD_BANK_SEL, VAL_BANK0) != HAL_OK)
+		{
+			HAL_Delay(120);
+			continue;
+		}
+
+		// Read Register 0x00 and 0x01
+		if (I3C1_ReadReg(REG_PART_ID_L, part_id, 2) != HAL_OK)
+		{
+			HAL_Delay(120);
+			continue;
+		}
+
+		uint16_t part_id_val = part_id[0] | (part_id[1] << 8);
+		printf("TestI3C1> Try %d: Read Part ID = 0x%04X\r\n", retry + 1, part_id_val);
+
+		if (part_id_val == VAL_PART_ID)
+		{
+			part_id_ok = 1;
+			break;
+		}
+		HAL_Delay(120);
+	}
+
+	if (!part_id_ok)
+	{
+		printf("TestI3C1> Failed to read correct Part ID (0x0271) after 3 retries\r\n");
+		Error_Handler();
+	}
+
+	printf("TestI3C1> Part ID matched successfully.\r\n");
+
+	// Check ID: I2C ID = 0x34 or 0x57
+	uint8_t dev_addr = aPrivateDescriptor[I3C_IDX_FRAME_1].TargetAddr;
+	if (dev_addr != 0x34 && dev_addr != 0x57)
+	{
+		printf("TestI3C1> Invalid Target Address (0x%02X). Expected 0x34 or 0x57.\r\n", dev_addr);
+		Error_Handler();
+	}
+	printf("TestI3C1> Target ID check passed (0x%02X).\r\n", dev_addr);
+
+	// Switch to Bank0
+	if (I3C1_WriteReg(REG_CMD_BANK_SEL, VAL_BANK0) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	// Cold Reset
+	printf("TestI3C1> Performing Cold Reset...\r\n");
+	if (I3C1_WriteReg(REG_SW_RESET, VAL_COLD_RESET) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	// Wait 120 ms
+	HAL_Delay(120);
+
+	// OTP Load Done check loop
+	uint8_t status_flag = 0;
+	int otp_ok = 0;
+	for (int retry = 0; retry < 10; retry++)
+	{
+		if (I3C1_ReadReg(REG_STATUS, &status_flag, 1) == HAL_OK)
+		{
+			printf("TestI3C1> Status Flag (0x05) = 0x%02X\r\n", status_flag);
+			if (status_flag & STATUS_OTP_LOAD_DONE)
+			{
+				otp_ok = 1;
+				break;
+			}
+		}
+		HAL_Delay(120);
+	}
+
+	if (!otp_ok)
+	{
+		printf("TestI3C1> OTP Load Done flag not set after retries\r\n");
+		Error_Handler();
+	}
+
+	printf("TestI3C1> Initialization Successful!\r\n");
+}
+// Thermopile End
 
 /* Context buffer related to Frame context, contain different buffer value for a communication */
 I3C_XferTypeDef aI3C2_ContextBuffers[I3C_IDX_FRAME_NUM] __attribute__((section("noncacheable_buffer")));
